@@ -30,7 +30,7 @@ export default function LegalNoticePage() {
             Angaben gemäß §5 TMG
           </h2>
           <div className="space-y-1">
-            <p className="text-white font-semibold text-base">Discordium Dating GmbH</p>
+            <p className="text-white font-semibold text-base">Aura Dating GmbH</p>
             <p className="text-white/70 text-sm">Musterstraße 1</p>
             <p className="text-white/70 text-sm">10115 Berlin</p>
             <p className="text-white/50 text-sm">Deutschland</p>
@@ -57,11 +57,11 @@ export default function LegalNoticePage() {
             </div>
             <div className="flex items-start gap-3">
               <span className="text-white/40 text-xs w-20 flex-shrink-0">E-Mail</span>
-              <span className="text-white/70 text-sm">kontakt@discordium.de</span>
+              <span className="text-white/70 text-sm">kontakt@aura.de</span>
             </div>
             <div className="flex items-start gap-3">
               <span className="text-white/40 text-xs w-20 flex-shrink-0">Website</span>
-              <span className="text-white/70 text-sm">www.discordium.de</span>
+              <span className="text-white/70 text-sm">www.aura.de</span>
             </div>
           </div>
         </div>

@@ -114,7 +114,7 @@ export const events: DateEvent[] = [
     currentAttendees: 98,
     tags: ['party', 'DJ', 'rooftop', 'summer', 'nightlife'],
     color: 'from-purple-600 to-pink-500',
-    hostName: 'Discordium Events',
+    hostName: 'Aura Events',
     hostEmoji: '🎊',
     ageRange: '22–38',
     gender: 'all',

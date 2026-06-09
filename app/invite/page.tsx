@@ -9,7 +9,7 @@ import {
 import { rewardTiers, invitedFriends } from '@/lib/discountsData';
 
 const REFERRAL_CODE = 'ALEX-XK92';
-const REFERRAL_LINK = 'https://discordium.app/join?ref=ALEX-XK92';
+const REFERRAL_LINK = 'https://aura.app/join?ref=ALEX-XK92';
 const MOCK_INVITE_COUNT = 3;
 
 type ToastType = { message: string; id: number };
@@ -86,7 +86,7 @@ export default function InvitePage() {
           <div className="text-6xl mb-4">🎁</div>
           <h2 className="text-white font-black text-2xl mb-2">Earn rewards for every friend you invite</h2>
           <p className="text-white/50 text-sm leading-relaxed">
-            Share your code, your friend joins Discordium, and you both get rewarded. Easy as that.
+            Share your code, your friend joins Aura, and you both get rewarded. Easy as that.
           </p>
         </motion.div>
 
@@ -344,7 +344,7 @@ export default function InvitePage() {
 
         {/* ── Terms ── */}
         <p className="text-white/20 text-[10px] text-center leading-relaxed">
-          Rewards are granted upon friend&apos;s verified registration. Referral rewards are non-transferable and may not be combined with other offers. Discordium reserves the right to modify the program at any time.
+          Rewards are granted upon friend&apos;s verified registration. Referral rewards are non-transferable and may not be combined with other offers. Aura reserves the right to modify the program at any time.
         </p>
 
       </div>

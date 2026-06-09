@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Settings, RefreshCw, Zap, Flag, Eye, Plus } from 'lucide-react';
+import AuraLogo from '@/components/AuraLogo';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import SwipeCard from '@/components/SwipeCard';
@@ -109,12 +110,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-brand-dark flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-12 pb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 gradient-brand rounded-xl flex items-center justify-center">
-            <Flame size={18} className="text-white" fill="white" />
-          </div>
-          <h1 className="text-white font-black text-xl">Discover</h1>
-        </div>
+        <AuraLogo size={32} wordmarkSize="text-xl" />
         <div className="flex items-center gap-2">
           {swipeHistory.length > 0 && (
             <motion.button

@@ -3,10 +3,10 @@ import './globals.css';
 import { I18nProvider } from '@/lib/i18n';
 
 export const metadata: Metadata = {
-  title: 'Discordium — Find Your Match',
-  description: 'A modern dating app combining swipe matching, browse, and real connections.',
-  keywords: ['dating', 'match', 'swipe', 'love', 'relationship'],
-  authors: [{ name: 'Discordium' }],
+  title: 'Aura — Feel the Connection',
+  description: 'Discover real connections. Swipe, match, and meet people who share your energy.',
+  keywords: ['dating', 'match', 'swipe', 'love', 'relationship', 'aura'],
+  authors: [{ name: 'Aura' }],
 };
 
 export const viewport: Viewport = {
@@ -14,7 +14,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#0f0a1a',
+  themeColor: '#07060f',
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap"
           rel="stylesheet"
         />
       </head>

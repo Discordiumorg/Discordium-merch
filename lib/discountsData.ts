@@ -61,7 +61,7 @@ export const promoCodes: PromoCode[] = [
     usedCount: 342,
     expiresAt: new Date(now + 30 * 86400000),
     applicableTo: 'all',
-    description: '10% off your first purchase – welcome to Discordium!',
+    description: '10% off your first purchase – welcome to Aura!',
   },
   {
     code: 'SUMMER25',

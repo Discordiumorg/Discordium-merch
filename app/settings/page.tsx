@@ -349,7 +349,7 @@ export default function SettingsPage() {
                   <Moon size={14} className="text-purple-400" />
                   Dark Mode
                 </p>
-                <p className="text-white/40 text-xs mt-0.5">Immer aktiv in Discordium</p>
+                <p className="text-white/40 text-xs mt-0.5">Immer aktiv in Aura</p>
               </div>
               <div className="w-12 h-6 rounded-full bg-purple-600 relative opacity-60">
                 <div className="absolute top-1 right-1 w-4 h-4 bg-white rounded-full" />
@@ -506,7 +506,7 @@ export default function SettingsPage() {
 
         {/* Version */}
         <div className="text-center py-2">
-          <p className="text-white/20 text-xs">Discordium v1.0.0</p>
+          <p className="text-white/20 text-xs">Aura v1.0.0</p>
           <p className="text-white/15 text-[10px] mt-1">Made with ❤️ for real connections</p>
         </div>
       </div>

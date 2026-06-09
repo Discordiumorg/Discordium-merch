@@ -737,7 +737,7 @@ export default function ProfilePage() {
 
               {/* App info */}
               <div className="text-center py-2">
-                <p className="text-white/20 text-xs">Discordium v1.0.0</p>
+                <p className="text-white/20 text-xs">Aura v1.0.0</p>
                 <p className="text-white/20 text-[10px] mt-1">Made with ❤️ for real connections</p>
               </div>
             </motion.div>

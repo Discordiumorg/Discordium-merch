@@ -73,10 +73,10 @@ export default function PrivacyPage() {
         <div className="card-glass rounded-2xl p-5">
           <h2 className="text-white font-bold text-sm mb-3">Kontakt Datenschutzbeauftragter</h2>
           <div className="space-y-1">
-            <p className="text-white/70 text-sm">Discordium Dating GmbH</p>
+            <p className="text-white/70 text-sm">Aura Dating GmbH</p>
             <p className="text-white/50 text-xs">z.H. Datenschutzbeauftragter</p>
             <p className="text-white/50 text-xs">Musterstraße 1, 10115 Berlin</p>
-            <p className="text-purple-400 text-xs mt-2">datenschutz@discordium.de</p>
+            <p className="text-purple-400 text-xs mt-2">datenschutz@aura.de</p>
           </div>
         </div>
       </div>
