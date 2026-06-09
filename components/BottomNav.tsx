@@ -2,11 +2,11 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Flame, Grid3X3, Calendar, MessageCircle, Crown, User } from 'lucide-react';
+import { Flame, Video, Calendar, MessageCircle, Crown, User } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', icon: Flame, label: 'Discover' },
-  { href: '/browse', icon: Grid3X3, label: 'Browse' },
+  { href: '/live', icon: Video, label: 'Live', live: true },
   { href: '/events', icon: Calendar, label: 'Events' },
   { href: '/matches', icon: MessageCircle, label: 'Matches' },
   { href: '/shop', icon: Crown, label: 'Shop', special: true },
@@ -32,7 +32,9 @@ export default function BottomNav({ matchCount = 0 }: BottomNavProps) {
 
       <nav className="relative flex items-center justify-around px-1 py-2 pb-safe-bottom">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href === '/shop' && pathname === '/premium');
+          const isActive = pathname === item.href
+            || (item.href === '/shop' && pathname === '/premium')
+            || (item.href === '/live' && pathname.startsWith('/live'));
           const badge = badges[item.href] || 0;
 
           return (
@@ -59,6 +61,15 @@ export default function BottomNav({ matchCount = 0 }: BottomNavProps) {
                   />
                 )}
 
+                {/* Pulsing red dot for Live tab */}
+                {item.live && !isActive && (
+                  <motion.span
+                    animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.2 }}
+                    className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full z-20"
+                  />
+                )}
+
                 <motion.div
                   animate={{
                     scale: isActive ? 1.15 : 1,
@@ -71,8 +82,10 @@ export default function BottomNav({ matchCount = 0 }: BottomNavProps) {
                     className={`transition-colors relative z-10 ${
                       isActive
                         ? 'text-purple-400'
-                        : item.special
+                        : (item as { special?: boolean }).special
                         ? 'text-yellow-400 group-hover:text-yellow-300'
+                        : (item as { live?: boolean }).live
+                        ? 'text-red-400 group-hover:text-red-300'
                         : 'text-white/40 group-hover:text-white/70'
                     }`}
                     strokeWidth={isActive ? 2.5 : 1.8}
@@ -94,8 +107,10 @@ export default function BottomNav({ matchCount = 0 }: BottomNavProps) {
                 className={`text-[9px] font-medium transition-colors ${
                   isActive
                     ? 'text-purple-400'
-                    : item.special
+                    : (item as { special?: boolean }).special
                     ? 'text-yellow-400/70 group-hover:text-yellow-400'
+                    : (item as { live?: boolean }).live
+                    ? 'text-red-400/70 group-hover:text-red-400'
                     : 'text-white/30 group-hover:text-white/50'
                 }`}
               >

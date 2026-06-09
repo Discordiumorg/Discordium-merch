@@ -2,11 +2,13 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Settings, RefreshCw, Zap, Flag } from 'lucide-react';
+import { Flame, Settings, RefreshCw, Zap, Flag, Eye } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import SwipeCard from '@/components/SwipeCard';
 import ReportModal from '@/components/ReportModal';
 import { mockUsers, mockMatches, mockVisitors } from '@/lib/mockData';
+import { liveStreams, formatViewerCount } from '@/lib/liveData';
 
 type SwipeResult = 'like' | 'nope' | 'superlike';
 
@@ -16,6 +18,7 @@ interface SwipeHistoryItem {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [cardStack, setCardStack] = useState([...mockUsers]);
   const [swipeHistory, setSwipeHistory] = useState<SwipeHistoryItem[]>([]);
   const [lastSwipe, setLastSwipe] = useState<{ name: string; result: SwipeResult } | null>(null);
@@ -106,6 +109,53 @@ export default function DashboardPage() {
           <button className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors">
             <Settings size={18} />
           </button>
+        </div>
+      </div>
+
+      {/* Live Now Strip */}
+      <div className="px-5 mb-2">
+        <div className="flex items-center gap-2 mb-2">
+          <motion.span
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ repeat: Infinity, duration: 1.2 }}
+            className="w-2 h-2 rounded-full bg-red-500 inline-block"
+          />
+          <span className="text-white/70 text-xs font-semibold">Live Now</span>
+        </div>
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+          {liveStreams.slice(0, 6).map((stream) => (
+            <motion.button
+              key={stream.id}
+              whileTap={{ scale: 0.94 }}
+              onClick={() => router.push(`/live/${stream.id}`)}
+              className="flex-shrink-0 flex flex-col items-center gap-1.5"
+            >
+              <div className="relative">
+                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-red-500 p-0.5 bg-brand-card">
+                  <img
+                    src={stream.hostPhoto}
+                    alt={stream.hostName}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                </div>
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.8, 0, 0.8] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="absolute inset-[-2px] rounded-full border-2 border-red-500 pointer-events-none"
+                />
+                <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[8px] font-bold px-1 py-0.5 rounded-sm leading-none">
+                  LIVE
+                </span>
+              </div>
+              <div className="text-center">
+                <p className="text-white/80 text-[10px] font-semibold leading-none">{stream.hostName}</p>
+                <p className="text-white/40 text-[9px] flex items-center gap-0.5 justify-center mt-0.5">
+                  <Eye size={8} />
+                  {formatViewerCount(stream.viewerCount)}
+                </p>
+              </div>
+            </motion.button>
+          ))}
         </div>
       </div>
 
