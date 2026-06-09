@@ -1,0 +1,541 @@
+'use client';
+
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import {
+  Camera,
+  Edit3,
+  Check,
+  X,
+  MapPin,
+  Briefcase,
+  GraduationCap,
+  Ruler,
+  Shield,
+  Bell,
+  HelpCircle,
+  LogOut,
+  ChevronRight,
+  Plus,
+  Trash2,
+  Star,
+  Eye,
+  Heart,
+} from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
+import { currentUser, mockMatches, mockVisitors, goalColors, goalEmojis, RelationshipGoal } from '@/lib/mockData';
+
+const allGoals: RelationshipGoal[] = ['casual', 'serious', 'friends+', 'open relationship', 'not sure yet'];
+const allInterests = [
+  'Photography', 'Travel', 'Coffee', 'Yoga', 'Music', 'Art', 'Hiking', 'Cooking',
+  'Gaming', 'Tech', 'Movies', 'Dancing', 'Reading', 'Fitness', 'Sports', 'Wine',
+  'Design', 'Cycling', 'Swimming', 'Languages', 'Meditation', 'Fashion',
+];
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const [profile, setProfile] = useState({ ...currentUser });
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [tempValue, setTempValue] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [activeSection, setActiveSection] = useState<'profile' | 'settings'>('profile');
+
+  const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
+  const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
+
+  const startEdit = (field: string, value: string) => {
+    setEditingField(field);
+    setTempValue(value);
+  };
+
+  const saveEdit = () => {
+    if (editingField) {
+      setProfile((prev) => ({ ...prev, [editingField]: tempValue }));
+      setEditingField(null);
+      showSaved();
+    }
+  };
+
+  const showSaved = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const toggleInterest = (interest: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      interests: prev.interests.includes(interest)
+        ? prev.interests.filter((i) => i !== interest)
+        : [...prev.interests, interest],
+    }));
+    showSaved();
+  };
+
+  const handleGoalChange = (goal: RelationshipGoal) => {
+    setProfile((prev) => ({ ...prev, relationshipGoal: goal }));
+    showSaved();
+  };
+
+  const stats = [
+    { label: 'Profile Views', value: profile.profileViews, icon: Eye, color: 'text-blue-400' },
+    { label: 'Matches', value: mockMatches.length, icon: Heart, color: 'text-red-400' },
+    { label: 'Super Likes', value: 7, icon: Star, color: 'text-yellow-400' },
+  ];
+
+  const settingsGroups = [
+    {
+      title: 'Account',
+      items: [
+        { icon: Shield, label: 'Privacy settings', action: () => {} },
+        { icon: Bell, label: 'Notifications', action: () => {} },
+      ],
+    },
+    {
+      title: 'Support',
+      items: [
+        { icon: HelpCircle, label: 'Help & FAQ', action: () => {} },
+      ],
+    },
+    {
+      title: '',
+      items: [
+        { icon: LogOut, label: 'Sign out', action: () => router.push('/'), danger: true },
+      ],
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-brand-dark">
+      {/* Header */}
+      <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-white font-black text-xl">My Profile</h1>
+
+          <div className="flex items-center gap-2">
+            <AnimatePresence>
+              {saved && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="flex items-center gap-1 text-green-400 text-xs font-medium"
+                >
+                  <Check size={14} />
+                  Saved
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mt-3">
+          {(['profile', 'settings'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveSection(tab)}
+              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                activeSection === tab
+                  ? 'gradient-brand text-white shadow-lg'
+                  : 'text-white/50 hover:text-white/80'
+              }`}
+            >
+              {tab === 'profile' ? '👤 Profile' : '⚙️ Settings'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="pb-28">
+        <AnimatePresence mode="wait">
+          {activeSection === 'profile' ? (
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="px-5 py-5 space-y-5"
+            >
+              {/* Profile photo section */}
+              <div className="flex flex-col items-center">
+                <div className="relative mb-3">
+                  <img
+                    src={profile.photos[0]}
+                    alt={profile.name}
+                    className="w-28 h-28 rounded-3xl object-cover border-4 border-purple-500/50 shadow-2xl"
+                  />
+                  <button className="absolute bottom-0 right-0 w-9 h-9 gradient-brand rounded-xl flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity">
+                    <Camera size={16} className="text-white" />
+                  </button>
+                  {profile.verified && (
+                    <div className="absolute -top-1 -right-1 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center border-2 border-brand-dark">
+                      <span className="text-white text-xs">✓</span>
+                    </div>
+                  )}
+                </div>
+
+                <h2 className="text-white text-2xl font-black">
+                  {profile.name}, {profile.age}
+                </h2>
+                <div className="flex items-center gap-1.5 text-white/60 text-sm mt-1">
+                  <MapPin size={14} />
+                  {profile.location}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                {stats.map((stat, i) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="card-glass rounded-2xl p-3 text-center"
+                  >
+                    <stat.icon size={18} className={`${stat.color} mx-auto mb-1`} />
+                    <p className="text-white font-bold text-lg">{stat.value}</p>
+                    <p className="text-white/40 text-[10px]">{stat.label}</p>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Photos grid */}
+              <div className="card-glass rounded-2xl p-4">
+                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Camera size={16} className="text-purple-400" />
+                  My Photos
+                  <span className="text-white/40 text-sm font-normal">({profile.photos.length}/6)</span>
+                </h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {profile.photos.map((photo, i) => (
+                    <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
+                      <img
+                        src={photo}
+                        alt={`Photo ${i + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {i === 0 && (
+                        <div className="absolute top-1 left-1 bg-purple-500/80 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">
+                          Main
+                        </div>
+                      )}
+                      <button className="absolute top-1 right-1 w-6 h-6 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 size={10} className="text-red-400" />
+                      </button>
+                    </div>
+                  ))}
+                  {profile.photos.length < 6 && (
+                    <button className="aspect-square rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-1.5 hover:border-purple-500/50 hover:bg-purple-500/5 transition-colors">
+                      <Plus size={20} className="text-white/40" />
+                      <span className="text-white/30 text-[10px]">Add photo</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Bio */}
+              <div className="card-glass rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-white font-semibold flex items-center gap-2">
+                    <Edit3 size={15} className="text-purple-400" />
+                    About Me
+                  </h3>
+                  <button
+                    onClick={() => startEdit('bio', profile.bio)}
+                    className="text-purple-400 text-xs hover:text-purple-300"
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                {editingField === 'bio' ? (
+                  <div>
+                    <textarea
+                      value={tempValue}
+                      onChange={(e) => setTempValue(e.target.value)}
+                      className="w-full bg-white/10 border border-purple-500/50 rounded-xl px-3 py-2.5 text-white text-sm resize-none focus:outline-none leading-relaxed"
+                      rows={4}
+                      maxLength={300}
+                      autoFocus
+                    />
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-white/30 text-xs">{tempValue.length}/300</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingField(null)}
+                          className="p-1.5 rounded-lg bg-white/10 text-white/60 hover:text-white"
+                        >
+                          <X size={14} />
+                        </button>
+                        <button
+                          onClick={saveEdit}
+                          className="p-1.5 rounded-lg gradient-brand text-white"
+                        >
+                          <Check size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-white/70 text-sm leading-relaxed">{profile.bio}</p>
+                )}
+              </div>
+
+              {/* Relationship goal */}
+              <div className="card-glass rounded-2xl p-4">
+                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Heart size={15} className="text-pink-400" />
+                  Looking For
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {allGoals.map((goal) => (
+                    <button
+                      key={goal}
+                      onClick={() => handleGoalChange(goal)}
+                      className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border transition-all ${
+                        profile.relationshipGoal === goal
+                          ? goalColors[goal] + ' scale-105'
+                          : 'bg-white/5 border-white/15 text-white/50 hover:text-white/80'
+                      }`}
+                    >
+                      <span>{goalEmojis[goal]}</span>
+                      {goal.charAt(0).toUpperCase() + goal.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Basic info */}
+              <div className="card-glass rounded-2xl p-4 space-y-3">
+                <h3 className="text-white font-semibold flex items-center gap-2">
+                  <MapPin size={15} className="text-purple-400" />
+                  Basic Info
+                </h3>
+
+                {[
+                  { field: 'job', icon: Briefcase, label: 'Job', value: profile.job || '' },
+                  { field: 'education', icon: GraduationCap, label: 'Education', value: profile.education || '' },
+                  { field: 'height', icon: Ruler, label: 'Height', value: profile.height || '' },
+                ].map((item) => (
+                  <div key={item.field} className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-brand-surface rounded-lg flex items-center justify-center flex-shrink-0">
+                      <item.icon size={15} className="text-white/60" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {editingField === item.field ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={tempValue}
+                            onChange={(e) => setTempValue(e.target.value)}
+                            className="flex-1 bg-white/10 border border-purple-500/50 rounded-lg px-2.5 py-1.5 text-white text-sm focus:outline-none"
+                            autoFocus
+                          />
+                          <button onClick={() => setEditingField(null)} className="text-white/40 hover:text-white/70">
+                            <X size={14} />
+                          </button>
+                          <button onClick={saveEdit} className="text-green-400 hover:text-green-300">
+                            <Check size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-white/40 text-[10px] uppercase tracking-wider">{item.label}</p>
+                            <p className="text-white/80 text-sm">
+                              {item.value || <span className="text-white/30 italic">Not set</span>}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => startEdit(item.field, item.value)}
+                            className="text-purple-400/60 hover:text-purple-400 ml-2"
+                          >
+                            <Edit3 size={13} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Interests */}
+              <div className="card-glass rounded-2xl p-4">
+                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Star size={15} className="text-yellow-400" />
+                  Interests
+                  <span className="text-white/40 text-xs font-normal">({profile.interests.length} selected)</span>
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {allInterests.map((interest) => {
+                    const isSelected = profile.interests.includes(interest);
+                    return (
+                      <button
+                        key={interest}
+                        onClick={() => toggleInterest(interest)}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-xl border transition-all ${
+                          isSelected
+                            ? 'gradient-brand text-white border-transparent shadow-sm'
+                            : 'bg-white/5 border-white/15 text-white/50 hover:text-white/80 hover:border-white/30'
+                        }`}
+                      >
+                        {interest}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Premium upgrade card */}
+              <div className="gradient-brand rounded-2xl p-5 shadow-2xl glow-purple">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Star size={18} className="text-yellow-300" fill="currentColor" />
+                      <span className="text-white font-black">Go Premium</span>
+                    </div>
+                    <p className="text-white/80 text-xs leading-relaxed">
+                      Unlock unlimited likes, see who liked you, and get priority placement.
+                    </p>
+                  </div>
+                </div>
+                <button className="mt-4 w-full bg-white text-purple-700 font-black py-3 rounded-xl hover:bg-white/90 transition-colors">
+                  Upgrade Now ✨
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="px-5 py-5 space-y-6"
+            >
+              {/* Discovery preferences */}
+              <div className="card-glass rounded-2xl p-4">
+                <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider text-white/50">
+                  Discovery
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    { label: 'Show me in discover', description: 'Let others find your profile', defaultOn: true },
+                    { label: 'Show online status', description: 'Let people see when you\'re active', defaultOn: true },
+                    { label: 'Profile visitors', description: 'Track who views your profile', defaultOn: true },
+                  ].map((pref, i) => {
+                    const [on, setOn] = useState(pref.defaultOn);
+                    return (
+                      <div key={i} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white text-sm font-medium">{pref.label}</p>
+                          <p className="text-white/40 text-xs mt-0.5">{pref.description}</p>
+                        </div>
+                        <button
+                          onClick={() => setOn(!on)}
+                          className={`w-12 h-6 rounded-full transition-colors relative flex-shrink-0 ${
+                            on ? 'bg-purple-600' : 'bg-white/20'
+                          }`}
+                        >
+                          <motion.div
+                            animate={{ x: on ? 24 : 2 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-md"
+                          />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Notifications */}
+              <div className="card-glass rounded-2xl p-4">
+                <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider text-white/50">
+                  Notifications
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'New matches', on: true },
+                    { label: 'Messages', on: true },
+                    { label: 'Profile visitors', on: false },
+                    { label: 'Likes & super likes', on: true },
+                  ].map((notif, i) => {
+                    const [on, setOn] = useState(notif.on);
+                    return (
+                      <div key={i} className="flex items-center justify-between py-1">
+                        <span className="text-white/70 text-sm">{notif.label}</span>
+                        <button
+                          onClick={() => setOn(!on)}
+                          className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${
+                            on ? 'bg-purple-600' : 'bg-white/20'
+                          }`}
+                        >
+                          <motion.div
+                            animate={{ x: on ? 20 : 2 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md"
+                          />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Settings groups */}
+              {settingsGroups.map((group, gi) => (
+                <div key={gi} className="card-glass rounded-2xl overflow-hidden">
+                  {group.title && (
+                    <div className="px-4 py-2.5 border-b border-white/10">
+                      <p className="text-white/40 text-xs font-medium uppercase tracking-wider">
+                        {group.title}
+                      </p>
+                    </div>
+                  )}
+                  {group.items.map((item, i) => (
+                    <button
+                      key={i}
+                      onClick={item.action}
+                      className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-colors ${
+                        i < group.items.length - 1 ? 'border-b border-white/5' : ''
+                      }`}
+                    >
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                        (item as { danger?: boolean }).danger
+                          ? 'bg-red-500/10'
+                          : 'bg-brand-surface'
+                      }`}>
+                        <item.icon
+                          size={18}
+                          className={(item as { danger?: boolean }).danger ? 'text-red-400' : 'text-white/60'}
+                        />
+                      </div>
+                      <span className={`flex-1 text-sm font-medium text-left ${
+                        (item as { danger?: boolean }).danger ? 'text-red-400' : 'text-white/80'
+                      }`}>
+                        {item.label}
+                      </span>
+                      {!(item as { danger?: boolean }).danger && (
+                        <ChevronRight size={16} className="text-white/30" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ))}
+
+              {/* App info */}
+              <div className="text-center py-2">
+                <p className="text-white/20 text-xs">Discordium v1.0.0</p>
+                <p className="text-white/20 text-[10px] mt-1">Made with ❤️ for real connections</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <BottomNav matchCount={unreadMatches} visitorCount={newVisitors} />
+    </div>
+  );
+}
