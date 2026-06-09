@@ -49,7 +49,7 @@ export default function RadarPage() {
   const goals = ['serious', 'casual', 'friends+', 'open relationship'];
 
   return (
-    <div className="min-h-screen bg-brand-dark flex flex-col">
+    <div className="min-h-screen bg-brand-dark flex flex-col pb-safe">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-3">
         <div className="flex items-center justify-between mb-3">

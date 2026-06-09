@@ -107,7 +107,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-dark flex flex-col">
+    <div className="min-h-screen bg-brand-dark flex flex-col pb-safe">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-12 pb-4">
         <AuraLogo size={32} wordmarkSize="text-xl" />

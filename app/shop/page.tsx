@@ -12,6 +12,7 @@ import {
   rarityConfig, diamondShopItems, diamondItems,
   type ShopItem, type Bundle, type GiftItem, type Inventory,
 } from '@/lib/shopData';
+import BottomNav from '@/components/BottomNav';
 
 type Category = 'all' | 'boost' | 'superlike' | 'coins' | 'rose' | 'spotlight' | 'bundle' | 'gifts' | 'diamond';
 
@@ -112,7 +113,7 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-dark">
+    <div className="min-h-screen bg-brand-dark pb-safe">
       {/* ── Header ── */}
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-4">
         <div className="flex items-center justify-between mb-4">
@@ -791,6 +792,7 @@ export default function ShopPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <BottomNav />
     </div>
   );
 }

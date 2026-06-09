@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { plans, type PlanId } from '@/lib/shopData';
+import BottomNav from '@/components/BottomNav';
 
 const perks = [
   { icon: Heart, label: 'Unlimited Likes', desc: 'Like as many profiles as you want' },
@@ -44,7 +45,7 @@ export default function PremiumPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-dark overflow-x-hidden">
+    <div className="min-h-screen bg-brand-dark overflow-x-hidden pb-safe">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-4 flex items-center gap-4">
         <button
@@ -289,6 +290,7 @@ export default function PremiumPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <BottomNav />
     </div>
   );
 }

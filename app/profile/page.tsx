@@ -116,7 +116,7 @@ export default function ProfilePage() {
   void settingsGroups;
 
   return (
-    <div className="min-h-screen bg-brand-dark">
+    <div className="min-h-screen bg-brand-dark pb-safe">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-3">
         <div className="flex items-center justify-between">
