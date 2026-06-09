@@ -87,7 +87,7 @@ const translations = {
   legal: {
     terms: 'Nutzungsbedingungen',
     privacy: 'Datenschutz',
-    imprint: 'Impressum',
+    imprint: 'Legal Notice',
     back: 'Zurück',
   },
   report: {

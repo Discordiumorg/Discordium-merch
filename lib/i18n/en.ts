@@ -89,7 +89,7 @@ const translations: Translations = {
   legal: {
     terms: 'Terms of Service',
     privacy: 'Privacy Policy',
-    imprint: 'Imprint',
+    imprint: 'Legal Notice',
     back: 'Back',
   },
   report: {

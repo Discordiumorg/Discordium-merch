@@ -450,7 +450,7 @@ export default function SettingsPage() {
           {[
             { label: t.legal.terms, icon: FileText, path: '/legal/terms' },
             { label: t.legal.privacy, icon: Shield, path: '/legal/privacy' },
-            { label: t.legal.imprint, icon: Globe, path: '/legal/imprint' },
+            { label: t.legal.imprint, icon: Globe, path: '/legal/notice' },
           ].map((item, i) => (
             <button
               key={i}
