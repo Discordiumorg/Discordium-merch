@@ -22,6 +22,7 @@ import ReportModal from '@/components/ReportModal';
 import { mockUsers, mockMatches, mockVisitors, goalColors, goalEmojis, RelationshipGoal } from '@/lib/mockData';
 
 type SortBy = 'distance' | 'newest' | 'popular';
+type ViewMode = 'grid' | 'matchgame';
 
 interface Filters {
   minAge: number;
@@ -55,6 +56,10 @@ export default function BrowsePage() {
   const [reportingUser, setReportingUser] = useState<{ id: string; name: string } | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showLikedYouModal, setShowLikedYouModal] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [matchGameIndex, setMatchGameIndex] = useState(0);
+  const [matchGameCount, setMatchGameCount] = useState(3);
+  const [matchGameAction, setMatchGameAction] = useState<'like' | 'nope' | 'superlike' | null>(null);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
@@ -125,13 +130,44 @@ export default function BrowsePage() {
     });
   };
 
+  const handleMatchGameAction = (action: 'like' | 'nope' | 'superlike') => {
+    setMatchGameAction(action);
+    if (action === 'like' || action === 'superlike') {
+      setMatchGameCount((c) => c + 1);
+    }
+    setTimeout(() => {
+      setMatchGameAction(null);
+      setMatchGameIndex((prev) => (prev + 1) % filteredUsers.length);
+    }, 600);
+  };
+
   return (
     <div className="min-h-screen bg-brand-dark">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-white font-black text-xl">Browse</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-white font-black text-xl">Browse</h1>
+            <button
+              onClick={() => router.push('/polls')}
+              className="text-xs font-bold px-3 py-1.5 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30 transition-colors"
+            >
+              Polls 🗳️
+            </button>
+          </div>
           <div className="flex items-center gap-2">
+            {/* Match Game toggle */}
+            <button
+              onClick={() => setViewMode((m) => m === 'grid' ? 'matchgame' : 'grid')}
+              className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-colors border ${
+                viewMode === 'matchgame'
+                  ? 'gradient-brand text-white border-transparent'
+                  : 'bg-white/10 border-white/20 text-white/70 hover:text-white'
+              }`}
+              title="Match Game"
+            >
+              {viewMode === 'matchgame' ? '🔲 Grid' : '🎯 Match Game'}
+            </button>
             {/* Radar map pin */}
             <button
               onClick={() => router.push('/radar')}
@@ -259,78 +295,164 @@ export default function BrowsePage() {
         </motion.button>
       </div>
 
-      {/* Results count */}
-      <div className="px-5 py-3">
-        <p className="text-white/40 text-xs">
-          {filteredUsers.length} {filteredUsers.length === 1 ? 'person' : 'people'} nearby
-        </p>
-      </div>
+      {/* Results count - only show in grid mode */}
+      {viewMode === 'grid' && (
+        <div className="px-5 py-3">
+          <p className="text-white/40 text-xs">
+            {filteredUsers.length} {filteredUsers.length === 1 ? 'person' : 'people'} nearby
+          </p>
+        </div>
+      )}
+
+      {/* Match Game View */}
+      {viewMode === 'matchgame' && filteredUsers.length > 0 && (
+        <div className="px-4 pb-28 pt-4">
+          {/* Match count */}
+          {matchGameCount > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card-glass rounded-2xl px-4 py-2.5 flex items-center justify-center gap-2 border border-purple-500/20 mb-4"
+            >
+              <span className="text-purple-300 text-sm font-bold">{matchGameCount} new matches from Match Game 🎉</span>
+            </motion.div>
+          )}
+
+          <AnimatePresence mode="wait">
+            {filteredUsers[matchGameIndex] && (
+              <motion.div
+                key={filteredUsers[matchGameIndex].id}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: matchGameAction ? 0.4 : 1, scale: matchGameAction ? 0.95 : 1 }}
+                exit={{ opacity: 0, scale: 0.88 }}
+                transition={{ duration: 0.25 }}
+                className="relative w-full rounded-3xl overflow-hidden"
+                style={{ height: '480px' }}
+              >
+                <img
+                  src={filteredUsers[matchGameIndex].photos[0]}
+                  alt={filteredUsers[matchGameIndex].name}
+                  className="w-full h-full object-cover"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(to top, rgba(15,10,26,0.95) 0%, rgba(15,10,26,0.3) 50%, transparent 100%)' }}
+                />
+                {/* Action overlay */}
+                {matchGameAction && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className={`text-6xl font-black rotate-[-12deg] border-4 px-4 py-2 rounded-xl ${
+                      matchGameAction === 'like' ? 'text-green-400 border-green-400' :
+                      matchGameAction === 'superlike' ? 'text-blue-400 border-blue-400' :
+                      'text-red-400 border-red-400'
+                    }`}>
+                      {matchGameAction === 'like' ? 'LIKE' : matchGameAction === 'superlike' ? 'SUPER' : 'NOPE'}
+                    </span>
+                  </div>
+                )}
+                {/* Info */}
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <h2 className="text-white font-black text-2xl mb-1">
+                    {filteredUsers[matchGameIndex].name}, {filteredUsers[matchGameIndex].age}
+                  </h2>
+                  <p className="text-white/70 text-sm mb-4">{filteredUsers[matchGameIndex].location} · {filteredUsers[matchGameIndex].distance} km</p>
+                  <div className="flex items-center justify-center gap-4">
+                    <motion.button
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => handleMatchGameAction('nope')}
+                      className="w-16 h-16 rounded-full bg-red-500/20 border-2 border-red-500/60 flex items-center justify-center text-2xl hover:bg-red-500/30 transition-colors"
+                    >
+                      ✕
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => handleMatchGameAction('superlike')}
+                      className="w-12 h-12 rounded-full bg-blue-500/20 border-2 border-blue-500/60 flex items-center justify-center text-xl hover:bg-blue-500/30 transition-colors"
+                    >
+                      ⭐
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => handleMatchGameAction('like')}
+                      className="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-500/60 flex items-center justify-center text-2xl hover:bg-green-500/30 transition-colors"
+                    >
+                      ❤️
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Grid */}
-      <div className="px-4 pb-28">
-        {filteredUsers.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredUsers.map((user, i) => (
-              <div key={user.id} className="relative">
-                <ProfileCard
-                  user={user}
-                  index={i}
-                  onClick={() => {}}
-                  onLike={() => handleLike(user.id)}
-                  onSuperLike={() => {}}
-                  isMatched={mockMatches.some((m) => m.user.id === user.id)}
-                  onMessage={() => router.push('/matches')}
-                />
-                {/* ... menu */}
-                <div className="absolute top-2 left-2 z-20">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenMenuId(openMenuId === user.id ? null : user.id);
-                    }}
-                    className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white transition-colors"
-                  >
-                    <MoreVertical size={13} />
-                  </button>
-                  <AnimatePresence>
-                    {openMenuId === user.id && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: -5 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: -5 }}
-                        className="absolute top-8 left-0 bg-brand-card border border-white/15 rounded-xl overflow-hidden shadow-xl z-30 min-w-[130px]"
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(null);
-                            setReportingUser({ id: user.id, name: user.name });
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 text-red-400 hover:bg-red-500/10 transition-colors text-xs font-medium"
+      {viewMode === 'grid' && (
+        <div className="px-4 pb-28">
+          {filteredUsers.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {filteredUsers.map((user, i) => (
+                <div key={user.id} className="relative">
+                  <ProfileCard
+                    user={user}
+                    index={i}
+                    onClick={() => {}}
+                    onLike={() => handleLike(user.id)}
+                    onSuperLike={() => {}}
+                    isMatched={mockMatches.some((m) => m.user.id === user.id)}
+                    onMessage={() => router.push('/matches')}
+                  />
+                  {/* ... menu */}
+                  <div className="absolute top-2 left-2 z-20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === user.id ? null : user.id);
+                      }}
+                      className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white transition-colors"
+                    >
+                      <MoreVertical size={13} />
+                    </button>
+                    <AnimatePresence>
+                      {openMenuId === user.id && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, y: -5 }}
+                          className="absolute top-8 left-0 bg-brand-card border border-white/15 rounded-xl overflow-hidden shadow-xl z-30 min-w-[130px]"
                         >
-                          <Flag size={12} />
-                          Melden
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              setReportingUser({ id: user.id, name: user.name });
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-red-400 hover:bg-red-500/10 transition-colors text-xs font-medium"
+                          >
+                            <Flag size={12} />
+                            Melden
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="text-5xl mb-4">🔍</div>
-            <p className="text-white/60 font-medium">No profiles match your filters</p>
-            <button
-              onClick={resetFilters}
-              className="mt-4 text-purple-400 text-sm font-semibold hover:text-purple-300"
-            >
-              Clear filters
-            </button>
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="text-5xl mb-4">🔍</div>
+              <p className="text-white/60 font-medium">No profiles match your filters</p>
+              <button
+                onClick={resetFilters}
+                className="mt-4 text-purple-400 text-sm font-semibold hover:text-purple-300"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <BottomNav matchCount={unreadMatches} visitorCount={newVisitors} />
 

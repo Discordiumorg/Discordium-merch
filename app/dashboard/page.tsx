@@ -8,6 +8,7 @@ import BottomNav from '@/components/BottomNav';
 import SwipeCard from '@/components/SwipeCard';
 import ReportModal from '@/components/ReportModal';
 import StoryViewer from '@/components/StoryViewer';
+import MomentCreator from '@/components/MomentCreator';
 import { mockUsers, mockMatches, mockVisitors, mockStories, currentUser } from '@/lib/mockData';
 import { liveStreams, formatViewerCount } from '@/lib/liveData';
 
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const [storyViewerIndex, setStoryViewerIndex] = useState<number | null>(null);
   const [seenStories, setSeenStories] = useState<Set<string>>(new Set());
   const [winkToast, setWinkToast] = useState<string | null>(null);
+  const [showMomentCreator, setShowMomentCreator] = useState(false);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => {
@@ -191,16 +193,17 @@ export default function DashboardPage() {
           </button>
         </div>
         <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
-          {/* Your story */}
+          {/* Add Moment */}
           <motion.button
             whileTap={{ scale: 0.94 }}
+            onClick={() => setShowMomentCreator(true)}
             className="flex-shrink-0 flex flex-col items-center gap-1.5"
           >
             <div className="relative">
               <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-dashed border-purple-500/50 p-0.5 bg-brand-card">
                 <img
                   src={currentUser.photos[0]}
-                  alt="Your story"
+                  alt="Add Moment"
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
@@ -208,7 +211,7 @@ export default function DashboardPage() {
                 <Plus size={10} className="text-white" />
               </div>
             </div>
-            <p className="text-white/60 text-[10px] font-medium">Your Story</p>
+            <p className="text-white/60 text-[10px] font-medium">Add Moment</p>
           </motion.button>
 
           {/* Others' stories */}
@@ -249,6 +252,31 @@ export default function DashboardPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* Meet Someone Now Banner */}
+      <div className="px-5 mb-3">
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => router.push('/meet')}
+          className="w-full rounded-2xl p-4 flex items-center justify-between overflow-hidden relative"
+          style={{ background: 'linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #ec4899 100%)' }}
+        >
+          <div className="absolute inset-0 opacity-20"
+            style={{ background: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3) 0%, transparent 60%)' }}
+          />
+          <div className="relative z-10">
+            <p className="text-white font-black text-sm">⚡ Meet Someone Now</p>
+            <p className="text-white/70 text-xs mt-0.5">Connect with someone random nearby</p>
+          </div>
+          <motion.div
+            animate={{ scale: [1, 1.12, 1] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="relative z-10 text-3xl"
+          >
+            ✨
+          </motion.div>
+        </motion.button>
       </div>
 
       {/* Swipe Result Notification */}
@@ -468,6 +496,13 @@ export default function DashboardPage() {
             startIndex={storyViewerIndex}
             onClose={() => setStoryViewerIndex(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Moment Creator */}
+      <AnimatePresence>
+        {showMomentCreator && (
+          <MomentCreator onClose={() => setShowMomentCreator(false)} />
         )}
       </AnimatePresence>
     </div>

@@ -2,13 +2,20 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X, Mic } from 'lucide-react';
 import { Match, Message, formatRelativeTime } from '@/lib/mockData';
 import ReportModal from '@/components/ReportModal';
 
 interface ChatWindowProps {
   match: Match;
   onClose: () => void;
+}
+
+interface VoiceMessage {
+  id: string;
+  duration: string;
+  senderId: string;
+  timestamp: Date;
 }
 
 const quickReplies = ['Hey! 👋', 'That sounds fun!', 'Tell me more 😊', 'When are you free?'];
@@ -32,6 +39,10 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showIcebreakers, setShowIcebreakers] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -87,6 +98,39 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
       sendMessage();
     }
   };
+
+  const startRecording = () => {
+    if (isRecording) return;
+    setIsRecording(true);
+    setRecordingSeconds(0);
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingSeconds((s) => {
+        if (s >= 4) {
+          stopRecording();
+          return s;
+        }
+        return s + 1;
+      });
+    }, 1000);
+  };
+
+  const stopRecording = () => {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    setIsRecording(false);
+    setRecordingSeconds(0);
+    const vm: VoiceMessage = {
+      id: `vm-${Date.now()}`,
+      duration: '0:05',
+      senderId: 'me',
+      timestamp: new Date(),
+    };
+    setVoiceMessages((prev) => [...prev, vm]);
+  };
+
+  const formatRecording = (s: number) => `0:0${s}`;
 
   const groupMessagesByDate = (msgs: Message[]) => {
     const groups: { date: string; messages: Message[] }[] = [];
@@ -286,6 +330,39 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
           )}
         </AnimatePresence>
 
+        {/* Voice messages */}
+        {voiceMessages.map((vm) => (
+          <motion.div
+            key={vm.id}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="flex items-end gap-2 justify-end"
+          >
+            <div className="flex flex-col items-end gap-0.5 max-w-[80%]">
+              <div className="gradient-brand rounded-2xl rounded-br-sm px-4 py-3 flex items-center gap-3 min-w-[180px]">
+                {/* Play button */}
+                <button className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-xs ml-0.5">▶</span>
+                </button>
+                {/* Waveform */}
+                <div className="flex items-center gap-0.5 flex-1">
+                  {[4,8,14,10,18,12,6,16,9,13,7,15,11,5,17,10,8,14,6,12].map((h, i) => (
+                    <div
+                      key={i}
+                      className="w-1 bg-white/70 rounded-full"
+                      style={{ height: `${h}px` }}
+                    />
+                  ))}
+                </div>
+                <span className="text-white/80 text-[10px] font-semibold flex-shrink-0">{vm.duration}</span>
+              </div>
+              <span className="text-white/30 text-[10px] px-1">
+                {vm.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ✓✓
+              </span>
+            </div>
+          </motion.div>
+        ))}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -368,6 +445,33 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
         userName={match.user.name}
       />
 
+      {/* Recording indicator */}
+      <AnimatePresence>
+        {isRecording && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-4 py-2 bg-red-500/10 border-t border-red-500/20 flex items-center justify-between overflow-hidden"
+          >
+            <div className="flex items-center gap-2">
+              <motion.div
+                animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+                transition={{ repeat: Infinity, duration: 1 }}
+                className="w-3 h-3 bg-red-500 rounded-full"
+              />
+              <span className="text-red-400 text-sm font-semibold">Recording... {formatRecording(recordingSeconds)}</span>
+            </div>
+            <button
+              onClick={stopRecording}
+              className="text-red-400 text-xs font-bold bg-red-500/20 px-3 py-1 rounded-full"
+            >
+              Stop
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Input area */}
       <div className="px-4 py-3 border-t border-white/10 bg-brand-card/80 backdrop-blur flex items-center gap-2 pb-safe-bottom">
         <button
@@ -385,16 +489,39 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={`Message ${match.user.name}...`}
-          className="flex-1 bg-brand-surface border border-white/15 rounded-2xl px-4 py-2.5 text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
+          placeholder={isRecording ? 'Recording...' : `Message ${match.user.name}...`}
+          disabled={isRecording}
+          className="flex-1 bg-brand-surface border border-white/15 rounded-2xl px-4 py-2.5 text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-purple-500/50 transition-colors disabled:opacity-50"
         />
+
+        {/* Mic button */}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={isRecording ? stopRecording : startRecording}
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+            isRecording
+              ? 'bg-red-500 text-white'
+              : 'bg-white/10 text-white/40 hover:text-white/70 hover:bg-white/15'
+          }`}
+        >
+          {isRecording ? (
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 0.8 }}
+            >
+              <Mic size={18} />
+            </motion.div>
+          ) : (
+            <Mic size={18} />
+          )}
+        </motion.button>
 
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => sendMessage()}
-          disabled={!input.trim()}
+          disabled={!input.trim() || isRecording}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-            input.trim()
+            input.trim() && !isRecording
               ? 'gradient-brand text-white glow-purple shadow-lg'
               : 'bg-white/10 text-white/30'
           }`}

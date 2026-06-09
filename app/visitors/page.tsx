@@ -6,11 +6,31 @@ import { Eye, Heart, Lock, Sparkles, TrendingUp } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { mockVisitors, mockMatches, mockFlirts, formatRelativeTime, goalColors, goalEmojis } from '@/lib/mockData';
 
+interface Admirer {
+  id: string;
+  silhouette: string;
+  ageRange: string;
+  city: string;
+  hint: string;
+  timeAgo: string;
+  clueRequested: boolean;
+}
+
+const mockAdmirers: Admirer[] = [
+  { id: 'a1', silhouette: '👤', ageRange: 'mid 20s', city: 'Berlin', hint: 'Shares 3 of your interests 🎯', timeAgo: '2h ago', clueRequested: false },
+  { id: 'a2', silhouette: '👤', ageRange: 'late 20s', city: 'Hamburg', hint: 'Has similar relationship goals 💍', timeAgo: '5h ago', clueRequested: false },
+  { id: 'a3', silhouette: '👤', ageRange: 'early 30s', city: 'Munich', hint: 'Visited your profile 4 times 👀', timeAgo: '1d ago', clueRequested: false },
+  { id: 'a4', silhouette: '👤', ageRange: 'mid 20s', city: 'Cologne', hint: 'Works in a creative field 🎨', timeAgo: '1d ago', clueRequested: false },
+  { id: 'a5', silhouette: '👤', ageRange: 'late 20s', city: 'Frankfurt', hint: 'Loves hiking and coffee ☕', timeAgo: '2d ago', clueRequested: false },
+];
+
 export default function VisitorsPage() {
   const [likedBack, setLikedBack] = useState<Set<string>>(new Set());
   const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'visitors' | 'flirts'>('visitors');
+  const [activeTab, setActiveTab] = useState<'visitors' | 'flirts' | 'admirers'>('visitors');
   const [winkedBack, setWinkedBack] = useState<Set<string>>(new Set());
+  const [admirers, setAdmirers] = useState<Admirer[]>(mockAdmirers);
+  const [clueToast, setClueToast] = useState(false);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
@@ -36,6 +56,14 @@ export default function VisitorsPage() {
   const weeklyViews = mockVisitors.length + 7;
   const growthPercent = 24;
 
+  const handleClueRequest = (admirerId: string) => {
+    setAdmirers((prev) =>
+      prev.map((a) => (a.id === admirerId ? { ...a, clueRequested: true } : a))
+    );
+    setClueToast(true);
+    setTimeout(() => setClueToast(false), 2500);
+  };
+
   return (
     <div className="min-h-screen bg-brand-dark">
       {/* Header */}
@@ -43,7 +71,7 @@ export default function VisitorsPage() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <h1 className="text-white font-black text-xl">
-              {activeTab === 'visitors' ? 'Profile Visitors' : 'Flirts'}
+              {activeTab === 'visitors' ? 'Profile Visitors' : activeTab === 'flirts' ? 'Flirts' : 'Admirers'}
             </h1>
             {newVisitors > 0 && activeTab === 'visitors' && (
               <motion.span
@@ -58,17 +86,17 @@ export default function VisitorsPage() {
         </div>
         {/* Tabs */}
         <div className="flex gap-1">
-          {(['visitors', 'flirts'] as const).map((tab) => (
+          {(['visitors', 'flirts', 'admirers'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${
+              className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${
                 activeTab === tab
                   ? 'gradient-brand text-white shadow-lg'
                   : 'text-white/50 hover:text-white/80'
               }`}
             >
-              {tab === 'visitors' ? `👁️ Visitors` : `😉 Flirts (${mockFlirts.length})`}
+              {tab === 'visitors' ? `👁️ Visitors` : tab === 'flirts' ? `😉 Flirts (${mockFlirts.length})` : `🔮 Admirers`}
             </button>
           ))}
         </div>
@@ -76,7 +104,76 @@ export default function VisitorsPage() {
 
       <div className="px-5 pb-28">
         <AnimatePresence mode="wait">
-        {activeTab === 'flirts' ? (
+        {activeTab === 'admirers' ? (
+          <motion.div
+            key="admirers"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="pt-4 space-y-3"
+          >
+            <div className="card-glass rounded-2xl p-4 mb-4 border border-purple-500/20 text-center">
+              <p className="text-2xl mb-1">👀</p>
+              <p className="text-white font-bold text-base">Someone likes you anonymously</p>
+              <p className="text-white/50 text-xs mt-1">They&apos;re too shy to show themselves — for now</p>
+            </div>
+
+            {admirers.map((admirer, i) => (
+              <motion.div
+                key={admirer.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.07 }}
+                className="relative card-glass rounded-2xl p-4 border border-white/10 overflow-hidden"
+              >
+                {/* Gradient blur overlay */}
+                <div
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(236,72,153,0.08) 100%)',
+                  }}
+                />
+                <div className="relative z-10 flex items-center gap-4">
+                  {/* Silhouette */}
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-900/60 to-pink-900/60 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                    <span className="text-3xl opacity-40">{admirer.silhouette}</span>
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold text-sm">{admirer.ageRange} · {admirer.city}</p>
+                    <p className="text-purple-300 text-xs mt-0.5">{admirer.hint}</p>
+                    <p className="text-white/30 text-xs mt-1">{admirer.timeAgo}</p>
+                  </div>
+
+                  {/* Reveal button */}
+                  <button
+                    onClick={() => setShowPremiumModal(true)}
+                    className="flex-shrink-0 bg-gradient-to-br from-purple-600 to-pink-500 text-white text-xs font-bold px-3 py-2 rounded-xl hover:opacity-90 transition-opacity"
+                  >
+                    Reveal ✨
+                  </button>
+                </div>
+
+                {/* Clue request */}
+                <div className="relative z-10 mt-3 pt-3 border-t border-white/10">
+                  {admirer.clueRequested ? (
+                    <p className="text-purple-300 text-xs text-center font-semibold">
+                      🔮 Clue request sent!
+                    </p>
+                  ) : (
+                    <button
+                      onClick={() => handleClueRequest(admirer.id)}
+                      className="w-full text-white/50 text-xs font-medium hover:text-purple-300 transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      🔮 Send a clue request
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : activeTab === 'flirts' ? (
           <motion.div
             key="flirts"
             initial={{ opacity: 0, x: 20 }}
@@ -387,6 +484,60 @@ export default function VisitorsPage() {
       </div>
 
       <BottomNav matchCount={unreadMatches} visitorCount={newVisitors} />
+
+      {/* Premium modal for admirer reveal */}
+      <AnimatePresence>
+        {showPremiumModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+            onClick={() => setShowPremiumModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="bg-brand-card border border-purple-500/30 rounded-3xl p-6 text-center max-w-xs w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-4xl mb-3">🔮</div>
+              <h2 className="text-white font-black text-xl mb-2">Upgrade to Platinum</h2>
+              <p className="text-white/60 text-sm mb-5 leading-relaxed">
+                Reveal your anonymous admirer and see who secretly likes you. Upgrade to Platinum to unlock all admirers.
+              </p>
+              <button
+                onClick={() => setShowPremiumModal(false)}
+                className="w-full gradient-brand text-white font-black py-3 rounded-2xl mb-3 hover:opacity-90 transition-opacity"
+              >
+                Upgrade to Platinum ✨
+              </button>
+              <button
+                onClick={() => setShowPremiumModal(false)}
+                className="w-full text-white/40 text-sm font-medium"
+              >
+                Maybe later
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Clue request toast */}
+      <AnimatePresence>
+        {clueToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-purple-600 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 pointer-events-none"
+          >
+            🔮 Clue request sent!
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
