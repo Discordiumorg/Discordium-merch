@@ -22,6 +22,9 @@ import {
   Star,
   Eye,
   Heart,
+  Crown,
+  ShoppingCart,
+  Zap,
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { currentUser, mockMatches, mockVisitors, goalColors, goalEmojis, RelationshipGoal } from '@/lib/mockData';
@@ -200,6 +203,96 @@ export default function ProfilePage() {
                   </motion.div>
                 ))}
               </div>
+
+              {/* Premium status card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="gradient-brand rounded-2xl p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                      <Crown size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-black text-sm">Free Plan</p>
+                      <p className="text-white/70 text-xs">Upgrade for unlimited features</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => router.push('/premium')}
+                    className="bg-white text-purple-700 text-xs font-black px-3 py-2 rounded-xl hover:bg-white/90 transition-colors"
+                  >
+                    Upgrade ✨
+                  </button>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                  {[
+                    { label: 'Likes/day', free: '15', premium: '∞' },
+                    { label: 'Visitors', free: '3', premium: 'All' },
+                    { label: 'Rewinds', free: '0', premium: '∞' },
+                  ].map((row) => (
+                    <div key={row.label} className="bg-white/10 rounded-xl py-2 px-1">
+                      <p className="text-white/50 text-[9px] mb-1">{row.label}</p>
+                      <p className="text-white/40 text-[10px] line-through">{row.free}</p>
+                      <p className="text-white font-bold text-sm">{row.premium}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Quick shop links */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="grid grid-cols-2 gap-3"
+              >
+                <button
+                  onClick={() => router.push('/shop')}
+                  className="card-glass rounded-2xl p-4 flex items-center gap-3 hover:border-purple-500/40 border border-transparent transition-colors"
+                >
+                  <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    ⚡
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white font-bold text-sm">Boost</p>
+                    <p className="text-white/50 text-xs">10x more views</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => router.push('/shop')}
+                  className="card-glass rounded-2xl p-4 flex items-center gap-3 hover:border-blue-500/40 border border-transparent transition-colors"
+                >
+                  <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    🌟
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white font-bold text-sm">Super Likes</p>
+                    <p className="text-white/50 text-xs">Stand out instantly</p>
+                  </div>
+                </button>
+              </motion.div>
+
+              {/* Visitors shortcut */}
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                onClick={() => router.push('/visitors')}
+                className="w-full card-glass rounded-2xl p-4 flex items-center gap-4 hover:border-purple-500/30 border border-transparent transition-colors"
+              >
+                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Eye size={18} className="text-purple-400" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-white font-bold text-sm">Profile Visitors</p>
+                  <p className="text-white/50 text-xs">See who checked out your profile</p>
+                </div>
+                <ChevronRight size={16} className="text-white/30" />
+              </motion.button>
 
               {/* Photos grid */}
               <div className="card-glass rounded-2xl p-4">
