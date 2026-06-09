@@ -519,12 +519,32 @@ export default function ShopPage() {
           </motion.div>
         )}
 
-        {/* ── Referral Banner ── */}
+        {/* ── Deals & Coupons Banner ── */}
         {category === 'all' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="card-glass rounded-2xl p-4 border border-purple-500/20"
+            onClick={() => router.push('/discounts')}
+            className="card-glass rounded-2xl p-4 border border-orange-500/20 cursor-pointer active:scale-[0.98] transition-transform"
+          >
+            <div className="flex items-center gap-4">
+              <div className="text-3xl flex-shrink-0">🏷️</div>
+              <div className="flex-1">
+                <p className="text-white font-bold text-sm">Deals & Coupons</p>
+                <p className="text-white/50 text-xs mt-0.5">Summer Sale: <span className="text-orange-400 font-bold">30% OFF</span> — 3 days left!</p>
+              </div>
+              <ChevronRight size={16} className="text-white/30 flex-shrink-0" />
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Referral / Invite Banner ── */}
+        {category === 'all' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={() => router.push('/invite')}
+            className="card-glass rounded-2xl p-4 border border-purple-500/20 cursor-pointer active:scale-[0.98] transition-transform"
           >
             <div className="flex items-center gap-4">
               <div className="text-3xl flex-shrink-0">👥</div>
@@ -532,9 +552,7 @@ export default function ShopPage() {
                 <p className="text-white font-bold text-sm">Invite Friends</p>
                 <p className="text-white/50 text-xs mt-0.5">Get <span className="text-yellow-400 font-bold">200 Coins</span> for every friend who joins</p>
               </div>
-              <button className="flex-shrink-0 card-glass border border-purple-500/30 text-purple-400 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1 hover:bg-purple-500/10 transition-colors">
-                Invite <ChevronRight size={12} />
-              </button>
+              <ChevronRight size={16} className="text-white/30 flex-shrink-0" />
             </div>
           </motion.div>
         )}

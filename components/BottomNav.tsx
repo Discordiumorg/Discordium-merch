@@ -2,11 +2,12 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Flame, Grid3X3, MessageCircle, Crown, User } from 'lucide-react';
+import { Flame, Grid3X3, Calendar, MessageCircle, Crown, User } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', icon: Flame, label: 'Discover' },
   { href: '/browse', icon: Grid3X3, label: 'Browse' },
+  { href: '/events', icon: Calendar, label: 'Events' },
   { href: '/matches', icon: MessageCircle, label: 'Matches' },
   { href: '/shop', icon: Crown, label: 'Shop', special: true },
   { href: '/profile', icon: User, label: 'Profile' },
@@ -17,7 +18,7 @@ interface BottomNavProps {
   visitorCount?: number;
 }
 
-export default function BottomNav({ matchCount = 0, visitorCount = 0 }: BottomNavProps) {
+export default function BottomNav({ matchCount = 0 }: BottomNavProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -29,7 +30,7 @@ export default function BottomNav({ matchCount = 0, visitorCount = 0 }: BottomNa
     <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50">
       <div className="absolute inset-0 bg-brand-dark/80 backdrop-blur-xl border-t border-white/10" />
 
-      <nav className="relative flex items-center justify-around px-2 py-2 pb-safe-bottom">
+      <nav className="relative flex items-center justify-around px-1 py-2 pb-safe-bottom">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href === '/shop' && pathname === '/premium');
           const badge = badges[item.href] || 0;
@@ -38,7 +39,7 @@ export default function BottomNav({ matchCount = 0, visitorCount = 0 }: BottomNa
             <button
               key={item.href}
               onClick={() => router.push(item.href)}
-              className="relative flex flex-col items-center gap-0.5 py-2 px-3 min-w-[60px] group"
+              className="relative flex flex-col items-center gap-0.5 py-2 px-2 min-w-[48px] group"
             >
               <div className="relative">
                 {isActive && (
@@ -66,7 +67,7 @@ export default function BottomNav({ matchCount = 0, visitorCount = 0 }: BottomNa
                   transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
                   <item.icon
-                    size={22}
+                    size={20}
                     className={`transition-colors relative z-10 ${
                       isActive
                         ? 'text-purple-400'
@@ -90,7 +91,7 @@ export default function BottomNav({ matchCount = 0, visitorCount = 0 }: BottomNa
               </div>
 
               <span
-                className={`text-[10px] font-medium transition-colors ${
+                className={`text-[9px] font-medium transition-colors ${
                   isActive
                     ? 'text-purple-400'
                     : item.special

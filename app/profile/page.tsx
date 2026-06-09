@@ -23,6 +23,8 @@ import {
   Eye,
   Heart,
   Crown,
+  Tag,
+  Users,
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { currentUser, mockMatches, mockVisitors, goalColors, goalEmojis, RelationshipGoal } from '@/lib/mockData';
@@ -293,6 +295,24 @@ export default function ProfilePage() {
                 <ChevronRight size={16} className="text-white/30" />
               </motion.button>
 
+              {/* Invite Friends shortcut */}
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                onClick={() => router.push('/invite')}
+                className="w-full card-glass rounded-2xl p-4 flex items-center gap-4 hover:border-purple-500/30 border border-transparent transition-colors"
+              >
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Users size={18} className="text-yellow-400" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-white font-bold text-sm">Invite Friends</p>
+                  <p className="text-white/50 text-xs">Earn 200 coins per referral</p>
+                </div>
+                <ChevronRight size={16} className="text-white/30" />
+              </motion.button>
+
               {/* Photos grid */}
               <div className="card-glass rounded-2xl p-4">
                 <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
@@ -528,23 +548,28 @@ export default function ProfilePage() {
                   <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Schnellzugriff</p>
                 </div>
                 {[
-                  { icon: Shield, label: 'Datenschutz', path: '/settings' },
-                  { icon: Bell, label: 'Benachrichtigungen', path: '/settings' },
-                  { icon: HelpCircle, label: 'Hilfe &amp; FAQ', path: '/settings' },
+                  { icon: Shield, label: 'Datenschutz', path: '/settings', raw: false },
+                  { icon: Bell, label: 'Benachrichtigungen', path: '/settings', raw: false },
+                  { icon: Tag, label: 'Deals & Coupons', path: '/discounts', raw: false },
+                  { icon: HelpCircle, label: 'Hilfe &amp; FAQ', path: '/settings', raw: true },
                 ].map((item, i) => (
                   <button
                     key={i}
                     onClick={() => router.push(item.path)}
                     className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-colors ${
-                      i < 2 ? 'border-b border-white/5' : ''
+                      i < 3 ? 'border-b border-white/5' : ''
                     }`}
                   >
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-brand-surface">
                       <item.icon size={18} className="text-white/60" />
                     </div>
-                    <span className="flex-1 text-sm font-medium text-white/80 text-left"
-                      dangerouslySetInnerHTML={{ __html: item.label }}
-                    />
+                    {item.raw ? (
+                      <span className="flex-1 text-sm font-medium text-white/80 text-left"
+                        dangerouslySetInnerHTML={{ __html: item.label }}
+                      />
+                    ) : (
+                      <span className="flex-1 text-sm font-medium text-white/80 text-left">{item.label}</span>
+                    )}
                     <ChevronRight size={16} className="text-white/30" />
                   </button>
                 ))}
