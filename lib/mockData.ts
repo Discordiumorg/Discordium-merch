@@ -413,6 +413,139 @@ export const mockVisitors: Visitor[] = [
   },
 ];
 
+// ─── Stories ─────────────────────────────────────────────────────────────────
+
+export interface Story {
+  id: string;
+  userId: string;
+  user: User;
+  mediaType: 'gradient' | 'photo';
+  gradient?: string;
+  caption?: string;
+  emoji?: string;
+  createdAt: Date;
+  views: number;
+  liked: boolean;
+}
+
+export const mockStories: Story[] = [
+  {
+    id: 'st1',
+    userId: 'u1',
+    user: mockUsers[0], // Sophie
+    mediaType: 'photo',
+    caption: 'Good morning Berlin',
+    emoji: '☀️',
+    createdAt: new Date(Date.now() - 1000 * 60 * 30),
+    views: 342,
+    liked: false,
+  },
+  {
+    id: 'st2',
+    userId: 'u2',
+    user: mockUsers[1], // Elena
+    mediaType: 'gradient',
+    gradient: 'from-purple-600 via-pink-500 to-orange-400',
+    caption: 'Coffee time',
+    emoji: '☕',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60),
+    views: 218,
+    liked: true,
+  },
+  {
+    id: 'st3',
+    userId: 'u3',
+    user: mockUsers[2], // Marcus
+    mediaType: 'gradient',
+    gradient: 'from-blue-600 via-cyan-500 to-teal-400',
+    caption: 'Morning run done',
+    emoji: '🏃',
+    createdAt: new Date(Date.now() - 1000 * 60 * 90),
+    views: 189,
+    liked: false,
+  },
+  {
+    id: 'st4',
+    userId: 'u4',
+    user: mockUsers[3], // Lena
+    mediaType: 'photo',
+    caption: 'New haircut, what do you think?',
+    emoji: '💇',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+    views: 456,
+    liked: false,
+  },
+  {
+    id: 'st5',
+    userId: 'u5',
+    user: mockUsers[4], // Kai
+    mediaType: 'gradient',
+    gradient: 'from-indigo-600 via-violet-500 to-purple-600',
+    caption: 'New track dropping tonight',
+    emoji: '🎧',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3),
+    views: 127,
+    liked: true,
+  },
+  {
+    id: 'st6',
+    userId: 'u6',
+    user: mockUsers[5], // Julia
+    mediaType: 'photo',
+    caption: 'Wine tasting in Tuscany',
+    emoji: '🍷',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
+    views: 521,
+    liked: false,
+  },
+  {
+    id: 'st7',
+    userId: 'u7',
+    user: mockUsers[6], // Tom
+    mediaType: 'gradient',
+    gradient: 'from-slate-700 via-gray-600 to-zinc-500',
+    caption: 'Sketching the new project',
+    emoji: '✏️',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 7),
+    views: 203,
+    liked: false,
+  },
+  {
+    id: 'st8',
+    userId: 'u8',
+    user: mockUsers[7], // Mia
+    mediaType: 'gradient',
+    gradient: 'from-rose-500 via-pink-500 to-fuchsia-500',
+    caption: 'Dance rehearsal day',
+    emoji: '💃',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
+    views: 167,
+    liked: false,
+  },
+];
+
+// ─── Flirts ───────────────────────────────────────────────────────────────────
+
+export interface Flirt {
+  user: User;
+  sentAt: Date;
+}
+
+export const mockFlirts: Flirt[] = [
+  {
+    user: mockUsers[0], // Sophie
+    sentAt: new Date(Date.now() - 1000 * 60 * 15),
+  },
+  {
+    user: mockUsers[4], // Kai
+    sentAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+  },
+  {
+    user: mockUsers[7], // Mia
+    sentAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
+  },
+];
+
 export function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diff = now.getTime() - date.getTime();

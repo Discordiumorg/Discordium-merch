@@ -12,7 +12,7 @@ export interface Plan {
   features: { label: string; included: boolean; highlight?: boolean }[];
 }
 
-export type ShopCategory = 'boost' | 'superlike' | 'coins' | 'rose' | 'gift' | 'spotlight' | 'bundle';
+export type ShopCategory = 'boost' | 'superlike' | 'coins' | 'rose' | 'gift' | 'spotlight' | 'bundle' | 'diamond';
 
 export interface ShopItem {
   id: string;
@@ -536,6 +536,71 @@ export const giftItems: GiftItem[] = [
   { id: 'g-trophy', name: 'Trophy', emoji: '🏆', coinCost: 300, description: 'They\'re a winner in your eyes', rarity: 'epic', color: 'from-yellow-300 to-amber-500' },
 ];
 
+// ─── Diamond Items ────────────────────────────────────────────────────────────
+
+export const diamondShopItems: ShopItem[] = [
+  {
+    id: 'diamonds-10',
+    category: 'diamond',
+    name: '10 Diamonds',
+    description: 'Starter pack — unlock a private photo or boost',
+    emoji: '💎',
+    price: 0.99,
+    amount: 10,
+    unit: 'diamonds',
+    color: 'from-cyan-400 to-blue-500',
+  },
+  {
+    id: 'diamonds-50',
+    category: 'diamond',
+    name: '50 Diamonds',
+    description: 'Send gifts, unlock stories, get radar priority',
+    emoji: '💎',
+    price: 3.99,
+    amount: 50,
+    unit: 'diamonds',
+    color: 'from-cyan-400 to-blue-500',
+    tag: 'bestseller',
+  },
+  {
+    id: 'diamonds-200',
+    category: 'diamond',
+    name: '200 Diamonds',
+    description: 'Great value — save 33% vs. starter pack',
+    emoji: '💎',
+    price: 9.99,
+    originalPrice: 14.96,
+    amount: 200,
+    unit: 'diamonds',
+    badge: '-33%',
+    color: 'from-cyan-400 to-blue-500',
+    tag: 'hot',
+  },
+  {
+    id: 'diamonds-500',
+    category: 'diamond',
+    name: '500 Diamonds',
+    description: 'Maximum value — the ultimate diamond stash',
+    emoji: '💎',
+    price: 19.99,
+    originalPrice: 36.25,
+    amount: 500,
+    unit: 'diamonds',
+    badge: '-45%',
+    color: 'from-cyan-400 to-blue-500',
+    tag: 'hot',
+  },
+];
+
+// ─── Diamond spend table ──────────────────────────────────────────────────────
+
+export const diamondItems: { diamonds: number; action: string; emoji: string }[] = [
+  { diamonds: 10, action: 'Unlock Private Photo', emoji: '🔒' },
+  { diamonds: 15, action: 'Story Boost', emoji: '📖' },
+  { diamonds: 20, action: 'Priority in Radar', emoji: '📡' },
+  { diamonds: 50, action: 'Send Diamond Gift', emoji: '💝' },
+];
+
 // ─── Coin spend table ─────────────────────────────────────────────────────────
 
 export const coinItems: { coins: number; action: string; emoji: string }[] = [
@@ -554,6 +619,7 @@ export interface Inventory {
   superLikes: number;
   coins: number;
   roses: number;
+  diamonds: number;
 }
 
 export const defaultInventory: Inventory = {
@@ -561,6 +627,7 @@ export const defaultInventory: Inventory = {
   superLikes: 5,
   coins: 150,
   roses: 0,
+  diamonds: 5,
 };
 
 // ─── Rarity colors ────────────────────────────────────────────────────────────
