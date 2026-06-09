@@ -8,14 +8,15 @@ import {
   SlidersHorizontal,
   X,
   MapPin,
-  Briefcase,
-  GraduationCap,
   Heart,
   Star,
   ChevronDown,
+  Flag,
+  MoreVertical,
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import ProfileCard from '@/components/ProfileCard';
+import ReportModal from '@/components/ReportModal';
 import { mockUsers, mockMatches, mockVisitors, goalColors, goalEmojis, RelationshipGoal } from '@/lib/mockData';
 
 type SortBy = 'distance' | 'newest' | 'popular';
@@ -49,6 +50,8 @@ export default function BrowsePage() {
   const [activeFilters, setActiveFilters] = useState<Filters>(defaultFilters);
   const [sortBy, setSortBy] = useState<SortBy>('distance');
   const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
+  const [reportingUser, setReportingUser] = useState<{ id: string; name: string } | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
@@ -223,16 +226,51 @@ export default function BrowsePage() {
         {filteredUsers.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {filteredUsers.map((user, i) => (
-              <ProfileCard
-                key={user.id}
-                user={user}
-                index={i}
-                onClick={() => {}}
-                onLike={() => handleLike(user.id)}
-                onSuperLike={() => {}}
-                isMatched={mockMatches.some((m) => m.user.id === user.id)}
-                onMessage={() => router.push('/matches')}
-              />
+              <div key={user.id} className="relative">
+                <ProfileCard
+                  user={user}
+                  index={i}
+                  onClick={() => {}}
+                  onLike={() => handleLike(user.id)}
+                  onSuperLike={() => {}}
+                  isMatched={mockMatches.some((m) => m.user.id === user.id)}
+                  onMessage={() => router.push('/matches')}
+                />
+                {/* ... menu */}
+                <div className="absolute top-2 left-2 z-20">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === user.id ? null : user.id);
+                    }}
+                    className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white transition-colors"
+                  >
+                    <MoreVertical size={13} />
+                  </button>
+                  <AnimatePresence>
+                    {openMenuId === user.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -5 }}
+                        className="absolute top-8 left-0 bg-brand-card border border-white/15 rounded-xl overflow-hidden shadow-xl z-30 min-w-[130px]"
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(null);
+                            setReportingUser({ id: user.id, name: user.name });
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 text-red-400 hover:bg-red-500/10 transition-colors text-xs font-medium"
+                        >
+                          <Flag size={12} />
+                          Melden
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
@@ -412,6 +450,13 @@ export default function BrowsePage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={!!reportingUser}
+        onClose={() => setReportingUser(null)}
+        userName={reportingUser?.name ?? ''}
+      />
     </div>
   );
 }

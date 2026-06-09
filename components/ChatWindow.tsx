@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag } from 'lucide-react';
 import { Match, Message, formatRelativeTime } from '@/lib/mockData';
+import ReportModal from '@/components/ReportModal';
 
 interface ChatWindowProps {
   match: Match;
@@ -19,6 +20,8 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
   const [input, setInput] = useState('');
   const [showEmojis, setShowEmojis] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -100,6 +103,7 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
       exit={{ x: '100%' }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       className="fixed inset-0 max-w-md mx-auto bg-brand-dark flex flex-col z-50"
+      onClick={() => showMenu && setShowMenu(false)}
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-brand-card/80 backdrop-blur-xl">
@@ -139,9 +143,35 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
           <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
             <Video size={18} />
           </button>
-          <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
-            <MoreVertical size={18} />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+            >
+              <MoreVertical size={18} />
+            </button>
+            <AnimatePresence>
+              {showMenu && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -5 }}
+                  className="absolute top-10 right-0 bg-brand-card border border-white/15 rounded-xl overflow-hidden shadow-xl z-30 min-w-[160px]"
+                >
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowReport(true);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium"
+                  >
+                    <Flag size={14} />
+                    Nutzer melden
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
@@ -281,6 +311,13 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        userName={match.user.name}
+      />
 
       {/* Input area */}
       <div className="px-4 py-3 border-t border-white/10 bg-brand-card/80 backdrop-blur flex items-center gap-2 pb-safe-bottom">

@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Settings, RefreshCw, Zap } from 'lucide-react';
+import { Flame, Settings, RefreshCw, Zap, Flag } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import SwipeCard from '@/components/SwipeCard';
+import ReportModal from '@/components/ReportModal';
 import { mockUsers, mockMatches, mockVisitors } from '@/lib/mockData';
 
 type SwipeResult = 'like' | 'nope' | 'superlike';
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const [swipeHistory, setSwipeHistory] = useState<SwipeHistoryItem[]>([]);
   const [lastSwipe, setLastSwipe] = useState<{ name: string; result: SwipeResult } | null>(null);
   const [showMatchModal, setShowMatchModal] = useState<typeof mockUsers[0] | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => {
@@ -135,6 +137,14 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         {cardStack.length > 0 ? (
           <div className="relative w-full" style={{ height: '520px' }}>
+            {/* Report button */}
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="absolute top-2 right-2 z-30 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/60 hover:text-red-400 hover:border-red-400/40 transition-colors"
+              title="Report user"
+            >
+              <Flag size={15} />
+            </button>
             {/* Show up to 3 cards */}
             {cardStack.slice(-3).map((user, index, arr) => {
               const isTop = index === arr.length - 1;
@@ -276,6 +286,13 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        userName={cardStack.length > 0 ? cardStack[cardStack.length - 1].name : ''}
+      />
     </div>
   );
 }

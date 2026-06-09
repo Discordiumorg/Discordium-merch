@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { I18nProvider } from '@/lib/i18n';
 
 export const metadata: Metadata = {
   title: 'Discordium — Find Your Match',
@@ -32,9 +33,11 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-brand-dark min-h-screen antialiased">
-        <div className="max-w-md mx-auto min-h-screen relative overflow-hidden">
-          {children}
-        </div>
+        <I18nProvider>
+          <div className="max-w-md mx-auto min-h-screen relative overflow-hidden">
+            {children}
+          </div>
+        </I18nProvider>
       </body>
     </html>
   );

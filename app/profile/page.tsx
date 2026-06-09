@@ -23,8 +23,6 @@ import {
   Eye,
   Heart,
   Crown,
-  ShoppingCart,
-  Zap,
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { currentUser, mockMatches, mockVisitors, goalColors, goalEmojis, RelationshipGoal } from '@/lib/mockData';
@@ -107,6 +105,7 @@ export default function ProfilePage() {
       ],
     },
   ];
+  void settingsGroups;
 
   return (
     <div className="min-h-screen bg-brand-dark">
@@ -505,118 +504,64 @@ export default function ProfilePage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="px-5 py-5 space-y-6"
+              className="px-5 py-5 space-y-4"
             >
-              {/* Discovery preferences */}
-              <div className="card-glass rounded-2xl p-4">
-                <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider text-white/50">
-                  Discovery
-                </h3>
-                <div className="space-y-4">
-                  {[
-                    { label: 'Show me in discover', description: 'Let others find your profile', defaultOn: true },
-                    { label: 'Show online status', description: 'Let people see when you\'re active', defaultOn: true },
-                    { label: 'Profile visitors', description: 'Track who views your profile', defaultOn: true },
-                  ].map((pref, i) => {
-                    const [on, setOn] = useState(pref.defaultOn);
-                    return (
-                      <div key={i} className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white text-sm font-medium">{pref.label}</p>
-                          <p className="text-white/40 text-xs mt-0.5">{pref.description}</p>
-                        </div>
-                        <button
-                          onClick={() => setOn(!on)}
-                          className={`w-12 h-6 rounded-full transition-colors relative flex-shrink-0 ${
-                            on ? 'bg-purple-600' : 'bg-white/20'
-                          }`}
-                        >
-                          <motion.div
-                            animate={{ x: on ? 24 : 2 }}
-                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                            className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-md"
-                          />
-                        </button>
-                      </div>
-                    );
-                  })}
+              {/* Open full settings page */}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => router.push('/settings')}
+                className="w-full card-glass rounded-2xl p-5 flex items-center gap-4 hover:border-purple-500/30 border border-transparent transition-colors"
+              >
+                <div className="w-12 h-12 gradient-brand rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl">⚙️</span>
                 </div>
-              </div>
-
-              {/* Notifications */}
-              <div className="card-glass rounded-2xl p-4">
-                <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider text-white/50">
-                  Notifications
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { label: 'New matches', on: true },
-                    { label: 'Messages', on: true },
-                    { label: 'Profile visitors', on: false },
-                    { label: 'Likes & super likes', on: true },
-                  ].map((notif, i) => {
-                    const [on, setOn] = useState(notif.on);
-                    return (
-                      <div key={i} className="flex items-center justify-between py-1">
-                        <span className="text-white/70 text-sm">{notif.label}</span>
-                        <button
-                          onClick={() => setOn(!on)}
-                          className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${
-                            on ? 'bg-purple-600' : 'bg-white/20'
-                          }`}
-                        >
-                          <motion.div
-                            animate={{ x: on ? 20 : 2 }}
-                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md"
-                          />
-                        </button>
-                      </div>
-                    );
-                  })}
+                <div className="flex-1 text-left">
+                  <p className="text-white font-bold">Einstellungen öffnen</p>
+                  <p className="text-white/50 text-xs mt-0.5">Konto, Entdeckung, Datenschutz, Sprache &amp; mehr</p>
                 </div>
-              </div>
+                <ChevronRight size={18} className="text-white/30" />
+              </motion.button>
 
-              {/* Settings groups */}
-              {settingsGroups.map((group, gi) => (
-                <div key={gi} className="card-glass rounded-2xl overflow-hidden">
-                  {group.title && (
-                    <div className="px-4 py-2.5 border-b border-white/10">
-                      <p className="text-white/40 text-xs font-medium uppercase tracking-wider">
-                        {group.title}
-                      </p>
+              {/* Quick shortcuts */}
+              <div className="card-glass rounded-2xl overflow-hidden">
+                <div className="px-4 py-2.5 border-b border-white/10">
+                  <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Schnellzugriff</p>
+                </div>
+                {[
+                  { icon: Shield, label: 'Datenschutz', path: '/settings' },
+                  { icon: Bell, label: 'Benachrichtigungen', path: '/settings' },
+                  { icon: HelpCircle, label: 'Hilfe &amp; FAQ', path: '/settings' },
+                ].map((item, i) => (
+                  <button
+                    key={i}
+                    onClick={() => router.push(item.path)}
+                    className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-colors ${
+                      i < 2 ? 'border-b border-white/5' : ''
+                    }`}
+                  >
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-brand-surface">
+                      <item.icon size={18} className="text-white/60" />
                     </div>
-                  )}
-                  {group.items.map((item, i) => (
-                    <button
-                      key={i}
-                      onClick={item.action}
-                      className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-colors ${
-                        i < group.items.length - 1 ? 'border-b border-white/5' : ''
-                      }`}
-                    >
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                        (item as { danger?: boolean }).danger
-                          ? 'bg-red-500/10'
-                          : 'bg-brand-surface'
-                      }`}>
-                        <item.icon
-                          size={18}
-                          className={(item as { danger?: boolean }).danger ? 'text-red-400' : 'text-white/60'}
-                        />
-                      </div>
-                      <span className={`flex-1 text-sm font-medium text-left ${
-                        (item as { danger?: boolean }).danger ? 'text-red-400' : 'text-white/80'
-                      }`}>
-                        {item.label}
-                      </span>
-                      {!(item as { danger?: boolean }).danger && (
-                        <ChevronRight size={16} className="text-white/30" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ))}
+                    <span className="flex-1 text-sm font-medium text-white/80 text-left"
+                      dangerouslySetInnerHTML={{ __html: item.label }}
+                    />
+                    <ChevronRight size={16} className="text-white/30" />
+                  </button>
+                ))}
+              </div>
+
+              {/* Sign out */}
+              <div className="card-glass rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => router.push('/')}
+                  className="w-full flex items-center gap-3 px-4 py-4 hover:bg-red-500/5 transition-colors"
+                >
+                  <div className="w-9 h-9 bg-red-500/10 rounded-xl flex items-center justify-center">
+                    <LogOut size={18} className="text-red-400" />
+                  </div>
+                  <span className="flex-1 text-sm font-medium text-red-400 text-left">Abmelden</span>
+                </button>
+              </div>
 
               {/* App info */}
               <div className="text-center py-2">

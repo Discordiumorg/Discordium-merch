@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { MapPin, Heart, Star, MessageCircle } from 'lucide-react';
 import { User, goalColors, goalEmojis } from '@/lib/mockData';
+import SocialLinks from '@/components/SocialLinks';
 
 interface ProfileCardProps {
   user: User;
@@ -93,13 +94,16 @@ export default function ProfileCard({
           </div>
 
           {/* Goal badge - compact version */}
-          <div className="mt-1.5">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${goalColors[user.relationshipGoal]}`}>
               <span>{goalEmojis[user.relationshipGoal]}</span>
               <span className="hidden sm:inline">
                 {user.relationshipGoal.charAt(0).toUpperCase() + user.relationshipGoal.slice(1)}
               </span>
             </span>
+            {user.socialLinks && (
+              <SocialLinks links={user.socialLinks} size="sm" />
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,13 @@
 export type RelationshipGoal = 'casual' | 'serious' | 'friends+' | 'open relationship' | 'not sure yet';
 
+export interface SocialLinks {
+  instagram?: string;
+  tiktok?: string;
+  spotify?: string;
+  snapchat?: string;
+  x?: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -18,6 +26,7 @@ export interface User {
   job?: string;
   education?: string;
   profileViews: number;
+  socialLinks?: SocialLinks;
 }
 
 export interface Message {
@@ -63,6 +72,11 @@ export const mockUsers: User[] = [
     job: 'Photographer',
     education: 'Berlin Art Academy',
     profileViews: 342,
+    socialLinks: {
+      instagram: '@sophie.photo',
+      tiktok: '@sophiedances',
+      spotify: 'Sophie M.',
+    },
   },
   {
     id: 'u2',
@@ -85,6 +99,10 @@ export const mockUsers: User[] = [
     job: 'UX Designer',
     education: 'TU Munich',
     profileViews: 218,
+    socialLinks: {
+      instagram: '@elena.ux',
+      spotify: 'Elena K.',
+    },
   },
   {
     id: 'u3',
@@ -149,6 +167,11 @@ export const mockUsers: User[] = [
     job: 'Software Developer',
     education: 'Goethe University',
     profileViews: 127,
+    socialLinks: {
+      tiktok: '@kai.dj',
+      x: '@kai_dev',
+      spotify: 'Kai Beats',
+    },
   },
   {
     id: 'u6',
@@ -171,6 +194,11 @@ export const mockUsers: User[] = [
     height: '5\'8"',
     job: 'Sommelier',
     profileViews: 521,
+    socialLinks: {
+      instagram: '@julia.wines',
+      snapchat: 'juliawines',
+      x: '@juliawines',
+    },
   },
   {
     id: 'u7',

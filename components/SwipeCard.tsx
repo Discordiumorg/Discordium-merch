@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { MapPin, Briefcase, Heart, X, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { User, goalColors, goalEmojis } from '@/lib/mockData';
+import SocialLinks from '@/components/SocialLinks';
 
 interface SwipeCardProps {
   user: User;
@@ -178,6 +179,11 @@ export default function SwipeCard({
                   {interest}
                 </span>
               ))}
+              {user.socialLinks && (
+                <div className="w-full mt-2">
+                  <SocialLinks links={user.socialLinks} size="sm" />
+                </div>
+              )}
             </div>
           )}
 
