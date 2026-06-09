@@ -9,14 +9,16 @@ import {
 import { useRouter } from 'next/navigation';
 import {
   shopItems, flashDeals, bundles, giftItems, coinItems, defaultInventory,
-  rarityConfig, type ShopItem, type Bundle, type GiftItem, type Inventory,
+  rarityConfig, diamondShopItems, diamondItems,
+  type ShopItem, type Bundle, type GiftItem, type Inventory,
 } from '@/lib/shopData';
 
-type Category = 'all' | 'boost' | 'superlike' | 'coins' | 'rose' | 'spotlight' | 'bundle' | 'gifts';
+type Category = 'all' | 'boost' | 'superlike' | 'coins' | 'rose' | 'spotlight' | 'bundle' | 'gifts' | 'diamond';
 
 const categoryTabs: { id: Category; label: string }[] = [
   { id: 'all',       label: '✨ All' },
   { id: 'bundle',    label: '📦 Bundles' },
+  { id: 'diamond',   label: '💎 Diamonds' },
   { id: 'boost',     label: '⚡ Boosts' },
   { id: 'superlike', label: '🌟 Super Likes' },
   { id: 'spotlight', label: '🏙️ Spotlight' },
@@ -67,14 +69,15 @@ export default function ShopPage() {
 
   const filteredItems = category === 'all'
     ? shopItems
-    : category === 'bundle' || category === 'gifts'
+    : category === 'bundle' || category === 'gifts' || category === 'diamond'
     ? []
     : shopItems.filter((i) => i.category === category);
 
-  const showBundle  = category === 'all' || category === 'bundle';
-  const showFlash   = category === 'all';
-  const showItems   = category !== 'bundle' && category !== 'gifts';
-  const showGifts   = category === 'gifts' || category === 'all';
+  const showBundle   = category === 'all' || category === 'bundle';
+  const showFlash    = category === 'all';
+  const showItems    = category !== 'bundle' && category !== 'gifts' && category !== 'diamond';
+  const showGifts    = category === 'gifts' || category === 'all';
+  const showDiamonds = category === 'diamond' || category === 'all';
 
   const triggerSuccess = (id: string) => {
     setSuccessId(id);
@@ -94,6 +97,7 @@ export default function ShopPage() {
         if (item.category === 'boost')     u.boosts     += item.amount;
         if (item.category === 'superlike') u.superLikes += item.amount;
         if (item.category === 'rose')      u.roses      += item.amount;
+        if (item.category === 'diamond')   u.diamonds   += item.amount;
         return u;
       });
     } else if (modal.type === 'bundle') {
@@ -121,9 +125,15 @@ export default function ShopPage() {
               <h1 className="text-white font-black text-xl">Shop</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2 card-glass px-3 py-1.5 rounded-xl">
-            <span className="text-base">🪙</span>
-            <span className="text-yellow-400 font-bold text-sm">{inventory.coins}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 card-glass px-3 py-1.5 rounded-xl">
+              <span className="text-base">💎</span>
+              <span className="text-cyan-400 font-bold text-sm">{inventory.diamonds}</span>
+            </div>
+            <div className="flex items-center gap-1.5 card-glass px-3 py-1.5 rounded-xl">
+              <span className="text-base">🪙</span>
+              <span className="text-yellow-400 font-bold text-sm">{inventory.coins}</span>
+            </div>
           </div>
         </div>
 
@@ -176,12 +186,13 @@ export default function ShopPage() {
             <Package size={15} className="text-purple-400" />
             <h3 className="text-white font-bold text-sm">My Inventory</h3>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {[
               { emoji: '⚡', label: 'Boosts',      value: inventory.boosts,     color: 'text-orange-400' },
-              { emoji: '🌟', label: 'Super Likes', value: inventory.superLikes, color: 'text-blue-400' },
+              { emoji: '🌟', label: 'S.Likes',     value: inventory.superLikes, color: 'text-blue-400' },
               { emoji: '🪙', label: 'Coins',        value: inventory.coins,      color: 'text-yellow-400' },
               { emoji: '🌹', label: 'Roses',        value: inventory.roses,      color: 'text-red-400' },
+              { emoji: '💎', label: 'Diamonds',     value: inventory.diamonds,   color: 'text-cyan-400' },
             ].map((stat) => (
               <div key={stat.label} className="bg-white/5 rounded-xl p-2.5 text-center">
                 <div className="text-xl mb-1">{stat.emoji}</div>
@@ -455,6 +466,91 @@ export default function ShopPage() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* ── Diamonds Section ── */}
+        {showDiamonds && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">💎</span>
+              <h2 className="text-white font-black text-base">Diamonds</h2>
+              <span className="text-white/40 text-xs ml-auto">Premium currency</span>
+            </div>
+
+            {/* Diamond items to buy */}
+            <div className="grid grid-cols-1 gap-3 mb-4">
+              {diamondShopItems.map((item, i) => {
+                const isBought = purchased.has(item.id);
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="card-glass rounded-2xl overflow-hidden"
+                  >
+                    <div className={`bg-gradient-to-r ${item.color} h-1`} />
+                    <div className="p-4 flex items-center gap-4">
+                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center text-2xl flex-shrink-0 shadow-lg`}>
+                        {item.emoji}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <p className="text-white font-bold text-sm">{item.name}</p>
+                          {item.badge && (
+                            <span className="bg-cyan-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">{item.badge}</span>
+                          )}
+                          {item.tag && (
+                            <span className={`${item.tag === 'hot' ? 'bg-red-500' : item.tag === 'bestseller' ? 'bg-purple-500' : 'bg-green-500'} text-white text-[9px] font-black px-1.5 py-0.5 rounded-full capitalize`}>
+                              {item.tag}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-white/50 text-xs leading-tight mb-1.5">{item.description}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-black text-base">€{item.price.toFixed(2)}</span>
+                          {item.originalPrice && (
+                            <span className="text-white/30 text-xs line-through">€{item.originalPrice.toFixed(2)}</span>
+                          )}
+                        </div>
+                      </div>
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => !isBought && setModal({ type: 'item', data: item })}
+                        className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-black ${
+                          isBought
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                            : `bg-gradient-to-r ${item.color} text-white shadow-lg`
+                        }`}
+                      >
+                        {isBought ? <span className="flex items-center gap-1"><Check size={12}/> Owned</span> : 'Buy'}
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Diamond spend table */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="card-glass rounded-2xl p-4"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">💎</span>
+                <h3 className="text-white font-bold text-sm">Spend Your Diamonds</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {diamondItems.map((di) => (
+                  <div key={di.action} className="flex items-center justify-between bg-white/5 rounded-xl px-3 py-2.5">
+                    <span className="text-white/70 text-xs flex items-center gap-1.5">{di.emoji} {di.action}</span>
+                    <span className="text-cyan-400 font-bold text-xs">{di.diamonds} 💎</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         )}
 

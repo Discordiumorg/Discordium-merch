@@ -25,6 +25,7 @@ import {
   Crown,
   Tag,
   Users,
+  Lock,
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { currentUser, mockMatches, mockVisitors, goalColors, goalEmojis, RelationshipGoal } from '@/lib/mockData';
@@ -43,6 +44,11 @@ export default function ProfilePage() {
   const [tempValue, setTempValue] = useState('');
   const [saved, setSaved] = useState(false);
   const [activeSection, setActiveSection] = useState<'profile' | 'settings'>('profile');
+  const [privateAlbumMode, setPrivateAlbumMode] = useState<'matches' | 'approval'>('matches');
+  const [photoRequests, setPhotoRequests] = useState([
+    { id: 'req1', name: 'Sophie', photo: 'https://picsum.photos/seed/sophie1/200/200' },
+    { id: 'req2', name: 'Marcus', photo: 'https://picsum.photos/seed/marcus1/200/200' },
+  ]);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
@@ -205,6 +211,65 @@ export default function ProfilePage() {
                 ))}
               </div>
 
+              {/* Profile Completeness Meter */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 }}
+                className="card-glass rounded-2xl p-4"
+              >
+                <div className="flex items-center gap-4">
+                  {/* SVG circular progress */}
+                  <div className="flex-shrink-0 relative w-20 h-20">
+                    <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+                      <circle
+                        cx="40" cy="40" r="32"
+                        fill="none"
+                        stroke="url(#progressGrad)"
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 32 * 0.68} ${2 * Math.PI * 32}`}
+                      />
+                      <defs>
+                        <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#7c3aed" />
+                          <stop offset="100%" stopColor="#ec4899" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-white font-black text-base">68%</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-white font-bold text-sm mb-0.5">Profile Strength</h3>
+                    <p className="text-white/50 text-xs mb-2">Complete your profile to get 3x more matches</p>
+                    <div className="space-y-1">
+                      {[
+                        { label: 'Profile photo', done: true },
+                        { label: 'Bio written', done: true },
+                        { label: 'Age & location', done: true },
+                        { label: 'Add more photos (need 3+)', done: profile.photos.length >= 3 },
+                        { label: 'Interests selected', done: profile.interests.length > 0 },
+                        { label: 'Verify profile', done: profile.verified },
+                        { label: 'Connect Instagram', done: !!(profile.socialLinks?.instagram) },
+                        { label: 'Relationship goal set', done: !!profile.relationshipGoal },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center gap-2">
+                          <span className={`text-xs flex-shrink-0 ${item.done ? 'text-green-400' : 'text-red-400'}`}>
+                            {item.done ? '✅' : '❌'}
+                          </span>
+                          <span className={`text-xs ${item.done ? 'text-white/60' : 'text-white/80'}`}>
+                            {item.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
               {/* Premium status card */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -345,6 +410,88 @@ export default function ProfilePage() {
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* Private Album */}
+              <div className="card-glass rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-white font-semibold flex items-center gap-2">
+                    <Lock size={15} className="text-purple-400" />
+                    Private Album
+                  </h3>
+                  {photoRequests.length > 0 && (
+                    <span className="bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+                      {photoRequests.length} pending
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-white/40 text-xs mb-3">Private photos are only shared when you approve</p>
+
+                {/* Visibility toggle */}
+                <div className="flex gap-2 mb-4">
+                  {(['matches', 'approval'] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setPrivateAlbumMode(mode)}
+                      className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-colors ${
+                        privateAlbumMode === mode
+                          ? 'gradient-brand text-white'
+                          : 'bg-white/5 text-white/50 border border-white/10'
+                      }`}
+                    >
+                      {mode === 'matches' ? '🔒 Matches only' : '✋ Requires approval'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Locked photo thumbnails */}
+                <div className="flex gap-3 mb-4">
+                  {[
+                    'https://picsum.photos/seed/private1/200/200',
+                    'https://picsum.photos/seed/private2/200/200',
+                  ].map((src, i) => (
+                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+                      <img src={src} alt="Private" className="w-full h-full object-cover blur-md scale-110" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                        <Lock size={20} className="text-white" />
+                      </div>
+                    </div>
+                  ))}
+                  <button className="w-20 h-20 rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-1 hover:border-purple-500/50 transition-colors flex-shrink-0">
+                    <Plus size={16} className="text-white/40" />
+                    <span className="text-white/30 text-[9px]">Add</span>
+                  </button>
+                </div>
+
+                {/* Pending requests */}
+                {photoRequests.length > 0 && (
+                  <div>
+                    <p className="text-white/50 text-xs font-semibold mb-2">Pending requests</p>
+                    <div className="space-y-2">
+                      {photoRequests.map((req) => (
+                        <div key={req.id} className="flex items-center gap-3 bg-white/5 rounded-xl px-3 py-2.5">
+                          <img src={req.photo} alt={req.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                          <span className="text-white/80 text-sm flex-1">{req.name}</span>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setPhotoRequests((prev) => prev.filter((r) => r.id !== req.id))}
+                              className="text-xs font-bold px-3 py-1.5 rounded-lg gradient-brand text-white"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => setPhotoRequests((prev) => prev.filter((r) => r.id !== req.id))}
+                              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-white/10 text-white/60"
+                            >
+                              Deny
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Bio */}

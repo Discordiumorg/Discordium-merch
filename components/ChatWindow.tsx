@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X } from 'lucide-react';
 import { Match, Message, formatRelativeTime } from '@/lib/mockData';
 import ReportModal from '@/components/ReportModal';
 
@@ -15,6 +15,15 @@ const quickReplies = ['Hey! 👋', 'That sounds fun!', 'Tell me more 😊', 'Whe
 
 const emojiPicker = ['😊', '❤️', '🔥', '✨', '😂', '🥰', '👍', '🎉'];
 
+const icebreakers = [
+  "What's your favorite travel destination? ✈️",
+  'Coffee or tea? ☕',
+  "What are you passionate about? 🔥",
+  "Best thing about your week so far? 😊",
+  'Would you rather: beach or mountains? 🏖️',
+  "What's your go-to karaoke song? 🎤",
+];
+
 export default function ChatWindow({ match, onClose }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>(match.messages);
   const [input, setInput] = useState('');
@@ -22,8 +31,11 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
   const [isTyping, setIsTyping] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showIcebreakers, setShowIcebreakers] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const isNewConversation = messages.length <= 1;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -276,6 +288,43 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Icebreaker Panel */}
+      <AnimatePresence>
+        {isNewConversation && showIcebreakers && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-purple-500/20 bg-purple-500/5 overflow-hidden"
+          >
+            <div className="px-4 pt-2.5 pb-1">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-purple-300 text-xs font-bold flex items-center gap-1.5">
+                  🧊 Break the ice!
+                </p>
+                <button
+                  onClick={() => setShowIcebreakers(false)}
+                  className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white/70"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+                {icebreakers.map((ib) => (
+                  <button
+                    key={ib}
+                    onClick={() => setInput(ib)}
+                    className="flex-shrink-0 bg-purple-500/20 border border-purple-500/30 text-purple-200 text-xs px-3 py-1.5 rounded-full hover:bg-purple-500/30 transition-colors whitespace-nowrap"
+                  >
+                    {ib}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Quick replies */}
       <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-hide">

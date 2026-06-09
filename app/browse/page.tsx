@@ -13,6 +13,8 @@ import {
   ChevronDown,
   Flag,
   MoreVertical,
+  Navigation,
+  Lock,
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import ProfileCard from '@/components/ProfileCard';
@@ -52,6 +54,7 @@ export default function BrowsePage() {
   const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
   const [reportingUser, setReportingUser] = useState<{ id: string; name: string } | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showLikedYouModal, setShowLikedYouModal] = useState(false);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
@@ -129,6 +132,14 @@ export default function BrowsePage() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-white font-black text-xl">Browse</h1>
           <div className="flex items-center gap-2">
+            {/* Radar map pin */}
+            <button
+              onClick={() => router.push('/radar')}
+              className="w-9 h-9 card-glass rounded-xl flex items-center justify-center text-purple-400 hover:text-purple-300 transition-colors border border-purple-500/30"
+              title="Open Radar"
+            >
+              <Navigation size={16} />
+            </button>
             {/* Sort */}
             <div className="relative">
               <select
@@ -212,6 +223,40 @@ export default function BrowsePage() {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Who liked you teaser */}
+      <div className="px-4 pt-3 pb-1">
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowLikedYouModal(true)}
+          className="w-full card-glass rounded-2xl p-3 border border-pink-500/20"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-white font-bold text-sm">
+              <span className="text-pink-400">3 people</span> liked you
+            </p>
+            <span className="text-xs text-purple-400 font-semibold">See who →</span>
+          </div>
+          <div className="flex gap-2">
+            {['likedyou1', 'likedyou2', 'likedyou3'].map((seed) => (
+              <div key={seed} className="relative w-16 h-20 rounded-xl overflow-hidden flex-shrink-0">
+                <img
+                  src={`https://picsum.photos/seed/${seed}/200/250`}
+                  alt="Liked you"
+                  className="w-full h-full object-cover blur-md scale-110"
+                />
+                <div className="absolute inset-0 bg-black/30 flex items-end justify-center pb-1">
+                  <span className="text-white text-[10px] font-bold bg-pink-500/80 backdrop-blur-sm rounded-full px-1.5 py-0.5">
+                    👍 Liked you
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.button>
       </div>
 
       {/* Results count */}
@@ -457,6 +502,65 @@ export default function BrowsePage() {
         onClose={() => setReportingUser(null)}
         userName={reportingUser?.name ?? ''}
       />
+
+      {/* Liked You — Premium Upsell Modal */}
+      <AnimatePresence>
+        {showLikedYouModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+            onClick={() => setShowLikedYouModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="bg-brand-card border border-pink-500/30 rounded-3xl p-6 text-center max-w-xs w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-16 h-16 gradient-brand rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-white" />
+              </div>
+              <h2 className="text-white font-black text-xl mb-2">See who liked you!</h2>
+              <p className="text-white/60 text-sm mb-5 leading-relaxed">
+                3 people have already liked your profile. Upgrade to Premium to find out who they are and match instantly.
+              </p>
+
+              {/* Blurred preview */}
+              <div className="flex justify-center gap-3 mb-5">
+                {['likedyou1', 'likedyou2', 'likedyou3'].map((seed) => (
+                  <div key={seed} className="relative w-16 h-16 rounded-xl overflow-hidden">
+                    <img
+                      src={`https://picsum.photos/seed/${seed}/200/200`}
+                      alt=""
+                      className="w-full h-full object-cover blur-lg scale-110"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Heart size={20} className="text-pink-400" fill="currentColor" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => { setShowLikedYouModal(false); router.push('/premium'); }}
+                className="w-full gradient-brand text-white font-black py-3 rounded-2xl mb-3 hover:opacity-90 transition-opacity"
+              >
+                Upgrade to Premium ✨
+              </button>
+              <button
+                onClick={() => setShowLikedYouModal(false)}
+                className="w-full text-white/40 text-sm font-medium"
+              >
+                Maybe later
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

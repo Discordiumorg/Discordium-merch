@@ -2,12 +2,13 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Settings, RefreshCw, Zap, Flag, Eye } from 'lucide-react';
+import { Flame, Settings, RefreshCw, Zap, Flag, Eye, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import SwipeCard from '@/components/SwipeCard';
 import ReportModal from '@/components/ReportModal';
-import { mockUsers, mockMatches, mockVisitors } from '@/lib/mockData';
+import StoryViewer from '@/components/StoryViewer';
+import { mockUsers, mockMatches, mockVisitors, mockStories, currentUser } from '@/lib/mockData';
 import { liveStreams, formatViewerCount } from '@/lib/liveData';
 
 type SwipeResult = 'like' | 'nope' | 'superlike';
@@ -24,6 +25,9 @@ export default function DashboardPage() {
   const [lastSwipe, setLastSwipe] = useState<{ name: string; result: SwipeResult } | null>(null);
   const [showMatchModal, setShowMatchModal] = useState<typeof mockUsers[0] | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [storyViewerIndex, setStoryViewerIndex] = useState<number | null>(null);
+  const [seenStories, setSeenStories] = useState<Set<string>>(new Set());
+  const [winkToast, setWinkToast] = useState<string | null>(null);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => {
@@ -81,6 +85,22 @@ export default function DashboardPage() {
   const resetCards = () => {
     setCardStack([...mockUsers]);
     setSwipeHistory([]);
+  };
+
+  const handleWink = useCallback(() => {
+    if (cardStack.length === 0) return;
+    const user = cardStack[cardStack.length - 1];
+    setWinkToast(user.name);
+    setTimeout(() => setWinkToast(null), 2500);
+  }, [cardStack]);
+
+  const handleOpenStory = (index: number) => {
+    setSeenStories((prev) => {
+      const next = new Set(prev);
+      next.add(mockStories[index].userId);
+      return next;
+    });
+    setStoryViewerIndex(index);
   };
 
   return (
@@ -156,6 +176,78 @@ export default function DashboardPage() {
               </div>
             </motion.button>
           ))}
+        </div>
+      </div>
+
+      {/* Stories Strip */}
+      <div className="px-5 mb-2">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white/70 text-xs font-semibold">Stories</span>
+          <button
+            onClick={() => router.push('/stories')}
+            className="text-purple-400 text-xs font-semibold hover:text-purple-300 transition-colors"
+          >
+            All Stories
+          </button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+          {/* Your story */}
+          <motion.button
+            whileTap={{ scale: 0.94 }}
+            className="flex-shrink-0 flex flex-col items-center gap-1.5"
+          >
+            <div className="relative">
+              <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-dashed border-purple-500/50 p-0.5 bg-brand-card">
+                <img
+                  src={currentUser.photos[0]}
+                  alt="Your story"
+                  className="w-full h-full rounded-full object-cover"
+                />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 gradient-brand rounded-full flex items-center justify-center border-2 border-brand-dark">
+                <Plus size={10} className="text-white" />
+              </div>
+            </div>
+            <p className="text-white/60 text-[10px] font-medium">Your Story</p>
+          </motion.button>
+
+          {/* Others' stories */}
+          {mockStories.map((story, index) => {
+            const isSeen = seenStories.has(story.userId);
+            return (
+              <motion.button
+                key={story.id}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => handleOpenStory(index)}
+                className="flex-shrink-0 flex flex-col items-center gap-1.5"
+              >
+                <div className="relative">
+                  <div
+                    className="w-14 h-14 rounded-full p-0.5"
+                    style={{
+                      background: isSeen
+                        ? 'rgba(255,255,255,0.15)'
+                        : 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)',
+                    }}
+                  >
+                    <div className="w-full h-full rounded-full overflow-hidden border-2 border-brand-dark">
+                      <img
+                        src={story.user.photos[0]}
+                        alt={story.user.name}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  {story.user.online && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-brand-dark" />
+                  )}
+                </div>
+                <p className="text-white/70 text-[10px] font-medium w-14 text-center truncate">
+                  {story.user.name}
+                </p>
+              </motion.button>
+            );
+          })}
         </div>
       </div>
 
@@ -247,29 +339,53 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Stats bar */}
+      {/* Stats bar + Wink button */}
       {cardStack.length > 0 && (
-        <div className="px-5 pb-2 flex items-center justify-center gap-6">
-          <div className="text-center">
-            <p className="text-white/40 text-xs">Remaining</p>
-            <p className="text-white font-bold">{cardStack.length}</p>
+        <div className="px-5 pb-2 flex flex-col items-center gap-2">
+          <div className="flex items-center justify-center gap-6">
+            <div className="text-center">
+              <p className="text-white/40 text-xs">Remaining</p>
+              <p className="text-white font-bold">{cardStack.length}</p>
+            </div>
+            <div className="w-px h-8 bg-white/10" />
+            <div className="text-center">
+              <p className="text-white/40 text-xs">Liked</p>
+              <p className="text-green-400 font-bold">
+                {swipeHistory.filter((s) => s.result === 'like' || s.result === 'superlike').length}
+              </p>
+            </div>
+            <div className="w-px h-8 bg-white/10" />
+            <div className="text-center">
+              <p className="text-white/40 text-xs">Passed</p>
+              <p className="text-white/60 font-bold">
+                {swipeHistory.filter((s) => s.result === 'nope').length}
+              </p>
+            </div>
           </div>
-          <div className="w-px h-8 bg-white/10" />
-          <div className="text-center">
-            <p className="text-white/40 text-xs">Liked</p>
-            <p className="text-green-400 font-bold">
-              {swipeHistory.filter((s) => s.result === 'like' || s.result === 'superlike').length}
-            </p>
-          </div>
-          <div className="w-px h-8 bg-white/10" />
-          <div className="text-center">
-            <p className="text-white/40 text-xs">Passed</p>
-            <p className="text-white/60 font-bold">
-              {swipeHistory.filter((s) => s.result === 'nope').length}
-            </p>
-          </div>
+          {/* Wink button */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={handleWink}
+            className="flex items-center gap-2 text-xs font-semibold px-5 py-2 rounded-full border border-yellow-500/40 text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500/20 transition-colors"
+          >
+            <span>😉</span> Wink
+          </motion.button>
         </div>
       )}
+
+      {/* Wink Toast */}
+      <AnimatePresence>
+        {winkToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-yellow-500 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 pointer-events-none"
+          >
+            😉 Wink sent to {winkToast}!
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <BottomNav matchCount={unreadMatches} visitorCount={newVisitors} />
 
@@ -343,6 +459,17 @@ export default function DashboardPage() {
         onClose={() => setShowReportModal(false)}
         userName={cardStack.length > 0 ? cardStack[cardStack.length - 1].name : ''}
       />
+
+      {/* Story Viewer */}
+      <AnimatePresence>
+        {storyViewerIndex !== null && (
+          <StoryViewer
+            stories={mockStories}
+            startIndex={storyViewerIndex}
+            onClose={() => setStoryViewerIndex(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

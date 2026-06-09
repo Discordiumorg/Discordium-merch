@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Heart, Lock, Sparkles, TrendingUp } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
-import { mockVisitors, mockMatches, formatRelativeTime, goalColors, goalEmojis } from '@/lib/mockData';
+import { mockVisitors, mockMatches, mockFlirts, formatRelativeTime, goalColors, goalEmojis } from '@/lib/mockData';
 
 export default function VisitorsPage() {
   const [likedBack, setLikedBack] = useState<Set<string>>(new Set());
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'visitors' | 'flirts'>('visitors');
+  const [winkedBack, setWinkedBack] = useState<Set<string>>(new Set());
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
@@ -38,10 +40,12 @@ export default function VisitorsPage() {
     <div className="min-h-screen bg-brand-dark">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <h1 className="text-white font-black text-xl">Profile Visitors</h1>
-            {newVisitors > 0 && (
+            <h1 className="text-white font-black text-xl">
+              {activeTab === 'visitors' ? 'Profile Visitors' : 'Flirts'}
+            </h1>
+            {newVisitors > 0 && activeTab === 'visitors' && (
               <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -52,9 +56,101 @@ export default function VisitorsPage() {
             )}
           </div>
         </div>
+        {/* Tabs */}
+        <div className="flex gap-1">
+          {(['visitors', 'flirts'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                activeTab === tab
+                  ? 'gradient-brand text-white shadow-lg'
+                  : 'text-white/50 hover:text-white/80'
+              }`}
+            >
+              {tab === 'visitors' ? `👁️ Visitors` : `😉 Flirts (${mockFlirts.length})`}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="px-5 pb-28">
+        <AnimatePresence mode="wait">
+        {activeTab === 'flirts' ? (
+          <motion.div
+            key="flirts"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="pt-4 space-y-3"
+          >
+            <p className="text-white/50 text-xs mb-4">People who winked at you!</p>
+            {mockFlirts.map((flirt, i) => {
+              const hasWinkedBack = winkedBack.has(flirt.user.id);
+              return (
+                <motion.div
+                  key={flirt.user.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.07 }}
+                  className="flex items-center gap-4 p-4 card-glass rounded-2xl"
+                >
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={flirt.user.photos[0]}
+                      alt={flirt.user.name}
+                      className="w-16 h-16 rounded-2xl object-cover"
+                    />
+                    {flirt.user.online && (
+                      <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-brand-card" />
+                    )}
+                    <span className="absolute -top-1 -right-1 text-lg">😉</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-white font-semibold">{flirt.user.name}</span>
+                      <span className="text-white/60 text-sm">{flirt.user.age}</span>
+                      {flirt.user.verified && <span className="text-blue-400 text-xs">✓</span>}
+                    </div>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${goalColors[flirt.user.relationshipGoal]}`}>
+                      {goalEmojis[flirt.user.relationshipGoal]}
+                      {flirt.user.relationshipGoal}
+                    </span>
+                    <p className="text-white/40 text-xs mt-1">
+                      Winked {formatRelativeTime(flirt.sentAt)}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {hasWinkedBack ? (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="text-xs text-yellow-400 font-semibold bg-yellow-500/20 px-3 py-2 rounded-xl border border-yellow-500/30"
+                      >
+                        Winked ✓
+                      </motion.span>
+                    ) : (
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setWinkedBack((prev) => { const n = new Set(prev); n.add(flirt.user.id); return n; })}
+                        className="bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 text-xs font-bold px-4 py-2 rounded-xl hover:bg-yellow-500/30 transition-colors flex items-center gap-1.5"
+                      >
+                        😉 Wink back
+                      </motion.button>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="visitors"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+          >
+
         {/* Stats cards */}
         <div className="grid grid-cols-3 gap-3 mt-4 mb-6">
           <motion.div
@@ -284,6 +380,10 @@ export default function VisitorsPage() {
             ))}
           </div>
         </motion.div>
+
+          </motion.div>
+        )}
+        </AnimatePresence>
       </div>
 
       <BottomNav matchCount={unreadMatches} visitorCount={newVisitors} />
