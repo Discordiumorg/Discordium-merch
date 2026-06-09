@@ -270,6 +270,42 @@ export default function ProfilePage() {
                 </div>
               </motion.div>
 
+              {/* Verification card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 }}
+                className="card-glass rounded-2xl p-4 border border-white/10"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ background: 'linear-gradient(135deg,rgba(147,51,234,0.3),rgba(244,63,142,0.3))', border: '1px solid rgba(196,132,252,0.3)' }}>
+                      <Shield size={18} style={{ color: '#c084fc' }} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-white font-bold text-sm">Unverified</p>
+                        <span className="text-white/30 text-xs">○</span>
+                      </div>
+                      <p className="text-white/45 text-xs">Complete steps to get your badge</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => router.push('/verify')}
+                    className="text-xs font-bold px-3 py-2 rounded-xl transition-colors"
+                    style={{ background: 'rgba(147,51,234,0.2)', color: '#c084fc', border: '1px solid rgba(196,132,252,0.3)' }}
+                  >
+                    Verify ✦
+                  </button>
+                </div>
+                <div className="mt-3 h-1.5 bg-white/8 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full w-[38%]"
+                    style={{ background: 'linear-gradient(90deg,#7c3aed,#f43f8e)' }} />
+                </div>
+                <p className="text-white/30 text-xs mt-1.5">38 / 100 — Basic verification needs 40 pts</p>
+              </motion.div>
+
               {/* Premium status card */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
