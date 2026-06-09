@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Minus, List, MapPin, MessageCircle, Heart } from 'lucide-react';
 import { mockUsers, mockMatches, mockVisitors, goalColors, goalEmojis } from '@/lib/mockData';
+import BottomNav from '@/components/BottomNav';
 
 // Fixed positions for user avatars on the map (percentage-based)
 const userPositions = [
@@ -385,6 +386,8 @@ export default function RadarPage() {
           )}
         </AnimatePresence>
       </div>
+
+      <BottomNav matchCount={mockMatches.filter((m) => m.unreadCount > 0).length} />
     </div>
   );
 }

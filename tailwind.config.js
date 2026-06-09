@@ -51,4 +51,12 @@ module.exports = {
     },
   },
   plugins: [],
+  safelist: [
+    // Non-standard opacity values used throughout the app
+    { pattern: /^bg-white\/(8|12|15|18|22|28|35|45|50|60|65|70)$/ },
+    { pattern: /^border-white\/(8|12|15|18|22|28|35|45)$/ },
+    { pattern: /^text-white\/(8|12|15|18|22|25|28|35|45|55|85)$/ },
+    { pattern: /^bg-brand-dark\/(80|85|88|90|92|95)$/ },
+    { pattern: /^bg-brand-card\/(80|85|88|90|92|95)$/ },
+  ],
 }
