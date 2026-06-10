@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X, Mic, ImageIcon, Lock } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X, Mic, ImageIcon, Lock, ShieldCheck, Copy, Check, ExternalLink } from 'lucide-react';
 import { Match, Message, formatRelativeTime } from '@/lib/mockData';
 import ReportModal from '@/components/ReportModal';
+import { getOrCreateMyKeyPair } from '@/lib/keyStore';
 
 interface ChatWindowProps {
   match: Match;
@@ -62,12 +63,21 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
   const [emojiPickerMsgId, setEmojiPickerMsgId] = useState<string | null>(null);
   const [readMsgIds, setReadMsgIds] = useState<Set<string>>(new Set());
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);
+  const [myFingerprint, setMyFingerprint] = useState('');
+  const [showKeySheet, setShowKeySheet] = useState(false);
+  const [fpCopied, setFpCopied] = useState(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isNewConversation = messages.length <= 1;
+
+  useEffect(() => {
+    getOrCreateMyKeyPair()
+      .then(({ fingerprint }) => setMyFingerprint(fingerprint))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -264,10 +274,13 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
         <div className="flex-1">
           <div className="flex items-center gap-1.5">
             <h3 className="text-white font-semibold text-base leading-tight">{match.user.name}</h3>
-            <span className="flex items-center gap-0.5 bg-green-500/15 border border-green-500/30 rounded-full px-1.5 py-0.5">
+            <button
+              onClick={() => setShowKeySheet(true)}
+              className="flex items-center gap-0.5 bg-green-500/15 border border-green-500/30 rounded-full px-1.5 py-0.5 hover:bg-green-500/25 transition-colors"
+            >
               <Lock size={8} className="text-green-400" />
               <span className="text-green-400 text-[9px] font-medium">E2E</span>
-            </span>
+            </button>
           </div>
           <p className="text-white/50 text-xs">
             {match.user.online ? (
@@ -632,6 +645,76 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
         onClose={() => setShowReport(false)}
         userName={match.user.name}
       />
+
+      {/* E2E Key Info Sheet */}
+      <AnimatePresence>
+        {showKeySheet && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowKeySheet(false)}
+              className="fixed inset-0 bg-black/60 z-[60]"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-brand-card rounded-t-3xl z-[61] px-5 pb-8 pt-5"
+            >
+              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-2xl bg-green-500/15 border border-green-500/25 flex items-center justify-center">
+                  <ShieldCheck size={20} className="text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold">Ende-zu-Ende verschlüsselt</h3>
+                  <p className="text-white/40 text-xs">Niemand außer euch kann diese Nachrichten lesen</p>
+                </div>
+              </div>
+
+              <div className="bg-green-500/8 border border-green-500/20 rounded-xl p-4 mb-4">
+                <p className="text-white/40 text-[11px] font-semibold uppercase tracking-wider mb-2">
+                  Dein Schlüssel-Fingerabdruck
+                </p>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {myFingerprint.split(' ').map((g, i) => (
+                    <span key={i} className="font-mono text-[11px] text-green-300 bg-green-500/10 rounded-lg px-2 py-0.5 tracking-widest">
+                      {g}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(myFingerprint);
+                    setFpCopied(true);
+                    setTimeout(() => setFpCopied(false), 2000);
+                  }}
+                  className="flex items-center gap-1.5 text-white/35 text-xs hover:text-white/60 transition-colors mt-1"
+                >
+                  {fpCopied ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
+                  {fpCopied ? 'Kopiert' : 'Kopieren'}
+                </button>
+              </div>
+
+              <p className="text-white/35 text-xs leading-relaxed mb-4">
+                Vergleiche diesen Fingerabdruck mit <span className="text-white/60">{match.user.name}</span> persönlich
+                oder per Videocall, um sicherzustellen, dass eure Verbindung nicht abgehört wird.
+              </p>
+
+              <button
+                onClick={() => { setShowKeySheet(false); window.location.href = '/encryption'; }}
+                className="w-full flex items-center justify-center gap-2 border border-white/15 rounded-xl py-2.5 text-white/60 text-sm hover:bg-white/5 transition-colors"
+              >
+                <ExternalLink size={14} />
+                Verschlüsselungs-Einstellungen
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Recording indicator */}
       <AnimatePresence>

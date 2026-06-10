@@ -269,6 +269,7 @@ export default function SecurityPage() {
                   <p className="text-white/40 text-xs font-semibold uppercase tracking-wider">Quick Actions</p>
                 </div>
                 {[
+                  { label: 'Verschlüsselung', sub: 'ECDH P-256 + AES-256-GCM Schlüssel', icon: Lock, action: () => router.push('/encryption') },
                   { label: 'Active Sessions', sub: `${sessions.length} devices`, icon: Smartphone, action: () => setTab('sessions') },
                   { label: 'Blocked Users', sub: `${blockedUsers.length} blocked`, icon: UserX, action: () => setTab('privacy') },
                   { label: 'Download My Data', sub: 'GDPR data export', icon: Download, action: () => showToast('Data export started — email in 24h') },
