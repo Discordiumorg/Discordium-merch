@@ -192,6 +192,18 @@ export default function ProfilePage() {
                   <MapPin size={14} />
                   {profile.location}
                 </div>
+                {/* Personality Type Badge */}
+                <button
+                  onClick={() => router.push('/quiz')}
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white border"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(236,72,153,0.2) 100%)',
+                    borderImage: 'linear-gradient(135deg, #7c3aed, #ec4899) 1',
+                    borderColor: 'rgba(196,132,252,0.5)',
+                  }}
+                >
+                  🗺️ The Adventurer
+                </button>
               </div>
 
               {/* Stats */}
@@ -210,6 +222,49 @@ export default function ProfilePage() {
                   </motion.div>
                 ))}
               </div>
+
+              {/* Streak / XP Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="card-glass rounded-2xl p-4"
+              >
+                <div className="flex items-center gap-4">
+                  {/* Streak */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <motion.span
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                      className="text-2xl"
+                    >
+                      🔥
+                    </motion.span>
+                    <div>
+                      <p className="text-white font-black text-2xl leading-none">12</p>
+                      <p className="text-white/50 text-[10px]">day streak</p>
+                    </div>
+                  </div>
+                  <div className="w-px h-10 bg-white/10 flex-shrink-0" />
+                  {/* XP */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-white font-bold text-xs">Level 7 · Explorer</span>
+                      <span className="text-white/40 text-[10px]">2,340 / 3,000 XP</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: '75%' }}
+                        transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
+                        className="h-full rounded-full"
+                        style={{ background: 'linear-gradient(90deg, #7c3aed, #ec4899)' }}
+                      />
+                    </div>
+                    <p className="text-white/30 text-[10px] mt-1">660 XP to Level 8</p>
+                  </div>
+                </div>
+              </motion.div>
 
               {/* Profile Completeness Meter */}
               <motion.div
@@ -413,6 +468,28 @@ export default function ProfilePage() {
                 </div>
                 <ChevronRight size={16} className="text-white/30" />
               </motion.button>
+
+              {/* Extra Links */}
+              {[
+                { emoji: '🧠', label: 'My Personality Type', path: '/quiz', color: 'text-purple-400' },
+                { emoji: '🛡️', label: 'Safe Date', path: '/safe-date', color: 'text-blue-400' },
+                { emoji: '❤️', label: 'Success Stories', path: '/success-stories', color: 'text-red-400' },
+              ].map((link) => (
+                <motion.button
+                  key={link.path}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.32 }}
+                  onClick={() => router.push(link.path)}
+                  className="w-full card-glass rounded-2xl p-4 flex items-center gap-4 hover:border-purple-500/30 border border-transparent transition-colors"
+                >
+                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                    {link.emoji}
+                  </div>
+                  <span className={`flex-1 text-sm font-medium ${link.color} text-left`}>{link.label}</span>
+                  <ChevronRight size={16} className="text-white/30" />
+                </motion.button>
+              ))}
 
               {/* Photos grid */}
               <div className="card-glass rounded-2xl p-4">

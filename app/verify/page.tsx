@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Check, Lock, ChevronDown, ChevronUp, Sparkles, Shield } from 'lucide-react';
+import { ArrowLeft, Check, Lock, ChevronDown, ChevronUp, Sparkles, Shield, Camera, X } from 'lucide-react';
 import {
   calculateVerification,
   TIER_CONFIG,
@@ -240,6 +240,11 @@ export default function VerifyPage() {
   const [factors, setFactors] = useState<ProfileFactors>(mockFactors);
   const [applyStep, setApplyStep] = useState<null | 'selfie' | 'id' | 'phone' | 'done'>(null);
   const [toast, setToast] = useState('');
+  const [showIdUpload, setShowIdUpload] = useState(false);
+  const [idUploadStep, setIdUploadStep] = useState(1);
+  const [idDocType, setIdDocType] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const result = calculateVerification(factors);
   const cfg = TIER_CONFIG[result.tier];
@@ -253,14 +258,40 @@ export default function VerifyPage() {
     if (action === 'phone') {
       setFactors((f) => ({ ...f, hasPhone: true }));
       showToast('📱 Phone number verified! +12 points');
+      setApplyStep(null);
     } else if (action === 'selfie') {
       setFactors((f) => ({ ...f, selfieVerified: true }));
       showToast('🤳 Selfie verified! +2 points');
+      setApplyStep(null);
     } else if (action === 'id') {
-      setFactors((f) => ({ ...f, idUploaded: true }));
-      showToast('🪪 ID uploaded for review! +4 points');
+      // Show ID upload modal instead of instantly handling
+      setShowIdUpload(true);
+      setIdUploadStep(1);
+      setIdDocType('');
+      setUploadProgress(0);
+      setIsUploading(false);
     }
-    setApplyStep(null);
+  };
+
+  const simulateUpload = (onDone: () => void) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    let p = 0;
+    const interval = setInterval(() => {
+      p += Math.random() * 20 + 5;
+      if (p >= 100) {
+        p = 100;
+        clearInterval(interval);
+        setIsUploading(false);
+        onDone();
+      }
+      setUploadProgress(Math.min(100, Math.round(p)));
+    }, 200);
+  };
+
+  const closeIdUpload = () => {
+    setShowIdUpload(false);
+    setIdUploadStep(1);
   };
 
   const quickActions = [
@@ -433,6 +464,188 @@ export default function VerifyPage() {
             style={{ boxShadow: '0 8px 32px rgba(124,58,237,0.4)' }}
           >
             {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ID Upload Modal */}
+      <AnimatePresence>
+        {showIdUpload && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end justify-center"
+            onClick={closeIdUpload}
+          >
+            <motion.div
+              initial={{ y: 200, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 200, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md bg-brand-card rounded-t-3xl p-6 border-t border-white/10 min-h-[60vh]"
+            >
+              {/* Progress dots */}
+              <div className="flex justify-center gap-2 mb-6">
+                {[1,2,3,4].map((s) => (
+                  <div
+                    key={s}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      s === idUploadStep ? 'w-6 bg-purple-500' : s < idUploadStep ? 'w-3 bg-green-500' : 'w-3 bg-white/20'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Close button */}
+              <button
+                onClick={closeIdUpload}
+                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+
+              {/* Step 1: Document type */}
+              {idUploadStep === 1 && (
+                <div>
+                  <h3 className="text-white font-black text-xl mb-1">Document type</h3>
+                  <p className="text-white/50 text-sm mb-5">Select the type of document you&apos;d like to use</p>
+                  <div className="space-y-3">
+                    {['Passport', 'ID Card', "Driver's License"].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => { setIdDocType(type); setIdUploadStep(2); }}
+                        className={`w-full py-4 rounded-2xl font-bold text-sm border transition-all text-left px-5 flex items-center justify-between ${
+                          idDocType === type
+                            ? 'gradient-brand text-white border-transparent'
+                            : 'bg-white/5 border-white/15 text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <span>{type === 'Passport' ? '🛂' : type === 'ID Card' ? '🪪' : '🚗'} {type}</span>
+                        <ChevronDown size={16} className="opacity-50 -rotate-90" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Front of document */}
+              {idUploadStep === 2 && (
+                <div>
+                  <h3 className="text-white font-black text-xl mb-1">Front of document</h3>
+                  <p className="text-white/50 text-sm mb-5">Make sure all details are clearly visible</p>
+                  <div className="border-2 border-dashed border-white/20 rounded-2xl h-44 flex flex-col items-center justify-center gap-3 mb-5 bg-white/5">
+                    <Camera size={36} className="text-white/30" />
+                    <p className="text-white/40 text-sm">Position your {idDocType} here</p>
+                  </div>
+                  {isUploading ? (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs text-white/50 mb-1">
+                        <span>Uploading...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full rounded-full"
+                          style={{ background: 'linear-gradient(90deg, #7c3aed, #ec4899)' }}
+                          animate={{ width: `${uploadProgress}%` }}
+                          transition={{ duration: 0.1 }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => simulateUpload(() => setIdUploadStep(3))}
+                        className="flex-1 py-3.5 rounded-2xl gradient-brand text-white font-bold text-sm"
+                      >
+                        📷 Take Photo
+                      </button>
+                      <button
+                        onClick={() => simulateUpload(() => setIdUploadStep(3))}
+                        className="flex-1 py-3.5 rounded-2xl bg-white/10 border border-white/15 text-white font-bold text-sm"
+                      >
+                        🖼️ Upload from Gallery
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Selfie */}
+              {idUploadStep === 3 && (
+                <div>
+                  <h3 className="text-white font-black text-xl mb-1">Take a selfie</h3>
+                  <p className="text-white/50 text-sm mb-5">Hold your face within the guide</p>
+                  <div className="border-2 border-dashed border-white/20 rounded-2xl h-44 flex flex-col items-center justify-center gap-3 mb-5 bg-white/5 relative overflow-hidden">
+                    {/* Face outline guide */}
+                    <div className="w-28 h-32 rounded-full border-4 border-purple-500/50 flex items-center justify-center">
+                      <span className="text-4xl">👤</span>
+                    </div>
+                  </div>
+                  {isUploading ? (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs text-white/50 mb-1">
+                        <span>Processing...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full rounded-full"
+                          style={{ background: 'linear-gradient(90deg, #7c3aed, #ec4899)' }}
+                          animate={{ width: `${uploadProgress}%` }}
+                          transition={{ duration: 0.1 }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => simulateUpload(() => setIdUploadStep(4))}
+                        className="flex-1 py-3.5 rounded-2xl gradient-brand text-white font-bold text-sm"
+                      >
+                        🤳 Take Selfie
+                      </button>
+                      <button
+                        onClick={() => simulateUpload(() => setIdUploadStep(4))}
+                        className="flex-1 py-3.5 rounded-2xl bg-white/10 border border-white/15 text-white font-bold text-sm"
+                      >
+                        🖼️ Upload from Gallery
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 4: Under Review */}
+              {idUploadStep === 4 && (
+                <div className="text-center py-4">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    className="w-20 h-20 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center mx-auto mb-5"
+                  >
+                    <Check size={36} className="text-green-400" />
+                  </motion.div>
+                  <h3 className="text-white font-black text-xl mb-2">Under Review</h3>
+                  <p className="text-white/60 text-sm leading-relaxed mb-6">
+                    We&apos;ll verify your {idDocType} within 24 hours. You&apos;ll receive a notification once it&apos;s been reviewed.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setFactors((f) => ({ ...f, idUploaded: true }));
+                      showToast('🪪 ID uploaded for review! +4 points');
+                      closeIdUpload();
+                    }}
+                    className="w-full py-3.5 rounded-2xl gradient-brand text-white font-bold"
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

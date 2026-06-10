@@ -67,6 +67,7 @@ export default function ShopPage() {
   const [inventory, setInventory] = useState<Inventory>({ ...defaultInventory });
   const [sentGifts, setSentGifts] = useState<Set<string>>(new Set());
   const [successId, setSuccessId] = useState<string | null>(null);
+  const [giftAnimation, setGiftAnimation] = useState<string | null>(null); // emoji for animation
 
   const filteredItems = category === 'all'
     ? shopItems
@@ -74,11 +75,13 @@ export default function ShopPage() {
     ? []
     : shopItems.filter((i) => i.category === category);
 
-  const showBundle   = category === 'all' || category === 'bundle';
-  const showFlash    = category === 'all';
-  const showItems    = category !== 'bundle' && category !== 'gifts' && category !== 'diamond';
-  const showGifts    = category === 'gifts' || category === 'all';
-  const showDiamonds = category === 'diamond' || category === 'all';
+  const showBundle     = category === 'all' || category === 'bundle';
+  const showFlash      = category === 'all';
+  const showItems      = category !== 'bundle' && category !== 'gifts' && category !== 'diamond' && category !== 'rose' && category !== 'spotlight';
+  const showGifts      = category === 'gifts' || category === 'all';
+  const showDiamonds   = category === 'diamond' || category === 'all';
+  const showRoses      = category === 'rose' || category === 'all';
+  const showSpotlight  = category === 'spotlight' || category === 'all';
 
   const triggerSuccess = (id: string) => {
     setSuccessId(id);
@@ -107,6 +110,9 @@ export default function ShopPage() {
       const gift = modal.data as GiftItem;
       setInventory((inv) => ({ ...inv, coins: Math.max(0, inv.coins - gift.coinCost) }));
       setSentGifts((p) => { const n = new Set(p); n.add(id); return n; });
+      // Trigger gift send animation
+      setGiftAnimation(gift.emoji);
+      setTimeout(() => setGiftAnimation(null), 2500);
     }
     triggerSuccess(id);
     setModal(null);
@@ -414,6 +420,112 @@ export default function ShopPage() {
           </div>
         )}
 
+        {/* ── Spotlight Purchase ── */}
+        {showSpotlight && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🏙️</span>
+              <h2 className="text-white font-black text-base">Spotlight</h2>
+            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card-glass rounded-2xl overflow-hidden border border-yellow-500/20"
+            >
+              <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/10 px-4 py-2 flex items-center justify-between">
+                <span className="text-yellow-400 text-xs font-bold">🔦 30-min Spotlight</span>
+                <span className="text-white/40 text-xs">234 users in next spotlight</span>
+              </div>
+              <div className="p-4 flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-2xl flex-shrink-0 shadow-lg">
+                  🔦
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-bold text-sm mb-0.5">30-min Spotlight</p>
+                  <p className="text-white/50 text-xs mb-2">Get boosted to the top of everyone&apos;s feed for 30 minutes</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-white font-black text-base">200 🪙</span>
+                    <span className="text-white/30 text-xs">or</span>
+                    <span className="text-white font-black text-base">€2.99</span>
+                  </div>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setInventory((inv) => ({ ...inv, coins: Math.max(0, inv.coins - 200) }))}
+                  className="flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg"
+                >
+                  Activate
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* ── Rose Tiers ── */}
+        {showRoses && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🌹</span>
+              <h2 className="text-white font-black text-base">Roses</h2>
+            </div>
+            <div className="space-y-3">
+              {[
+                {
+                  id: 'silver-rose',
+                  emoji: '🌷',
+                  name: 'Silver Rose',
+                  desc: 'Express interest',
+                  coins: 50,
+                  color: 'from-slate-400 to-slate-500',
+                  glow: 'rgba(148,163,184,0.3)',
+                },
+                {
+                  id: 'gold-rose',
+                  emoji: '🌹',
+                  name: 'Gold Rose',
+                  desc: 'Show you\'re serious',
+                  coins: 150,
+                  color: 'from-yellow-400 to-amber-500',
+                  glow: 'rgba(234,179,8,0.3)',
+                },
+                {
+                  id: 'crystal-rose',
+                  emoji: '💎',
+                  name: 'Crystal Rose',
+                  desc: 'Make them feel special',
+                  coins: 500,
+                  color: 'from-cyan-400 to-blue-500',
+                  glow: 'rgba(6,182,212,0.3)',
+                },
+              ].map((rose, i) => (
+                <motion.div
+                  key={rose.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.07 }}
+                  whileHover={{ boxShadow: `0 0 20px ${rose.glow}` }}
+                  className="card-glass rounded-2xl p-4 flex items-center gap-4 cursor-pointer border border-white/10 transition-all"
+                >
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${rose.color} flex items-center justify-center text-2xl flex-shrink-0 shadow-lg`}>
+                    {rose.emoji}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white font-bold text-sm">{rose.name}</p>
+                    <p className="text-white/50 text-xs">{rose.desc}</p>
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setInventory((inv) => ({ ...inv, coins: Math.max(0, inv.coins - rose.coins) }))}
+                    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r ${rose.color} text-white shadow-lg`}
+                  >
+                    {rose.coins} 🪙
+                  </motion.button>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Virtual Gifts ── */}
         {showGifts && (
           <div>
@@ -655,6 +767,63 @@ export default function ShopPage() {
         )}
 
       </div>
+
+      {/* ── Gift Send Animation ── */}
+      <AnimatePresence>
+        {giftAnimation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-none"
+          >
+            {/* Particle dots */}
+            {Array.from({ length: 20 }).map((_, i) => {
+              const angle = (i / 20) * 360;
+              const rad = (angle * Math.PI) / 180;
+              const dist = 120 + Math.random() * 60;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+                  animate={{
+                    x: Math.cos(rad) * dist,
+                    y: Math.sin(rad) * dist,
+                    opacity: 0,
+                    scale: 0,
+                  }}
+                  transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
+                  className="absolute w-3 h-3 rounded-full"
+                  style={{
+                    background: ['#ec4899', '#7c3aed', '#f59e0b', '#10b981'][i % 4],
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: -6,
+                    marginTop: -6,
+                  }}
+                />
+              );
+            })}
+            {/* Gift emoji */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: [0, 1.3, 1] }}
+              transition={{ duration: 0.6, type: 'spring' }}
+              className="text-8xl mb-6"
+            >
+              {giftAnimation}
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-white font-black text-xl"
+            >
+              Gift sent to Sofia! 🎁
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Success Toast ── */}
       <AnimatePresence>

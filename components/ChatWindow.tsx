@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X, Mic } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X, Mic, ImageIcon } from 'lucide-react';
 import { Match, Message, formatRelativeTime } from '@/lib/mockData';
 import ReportModal from '@/components/ReportModal';
 
@@ -18,9 +18,24 @@ interface VoiceMessage {
   timestamp: Date;
 }
 
+interface Reaction {
+  emoji: string;
+  count: number;
+  reacted: boolean;
+}
+
 const quickReplies = ['Hey! 👋', 'That sounds fun!', 'Tell me more 😊', 'When are you free?'];
 
 const emojiPicker = ['😊', '❤️', '🔥', '✨', '😂', '🥰', '👍', '🎉'];
+
+const reactionEmojis = ['❤️', '😂', '😮', '😢', '👍', '🔥'];
+
+const mockPhotos = [
+  'https://picsum.photos/seed/photo1/400/400',
+  'https://picsum.photos/seed/photo2/400/400',
+  'https://picsum.photos/seed/photo3/400/400',
+  'https://picsum.photos/seed/photo4/400/400',
+];
 
 const icebreakers = [
   "What's your favorite travel destination? ✈️",
@@ -42,6 +57,12 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([]);
+  const [reactions, setReactions] = useState<Record<string, Reaction[]>>({});
+  const [photoMessages, setPhotoMessages] = useState<Record<string, string>>({});
+  const [emojiPickerMsgId, setEmojiPickerMsgId] = useState<string | null>(null);
+  const [readMsgIds, setReadMsgIds] = useState<Set<string>>(new Set());
+  const [showPhotoPicker, setShowPhotoPicker] = useState(false);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +88,12 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
     setMessages((prev) => [...prev, newMsg]);
     setInput('');
     setShowEmojis(false);
+    setShowPhotoPicker(false);
+
+    // Mark as read after 1.5s
+    setTimeout(() => {
+      setReadMsgIds((prev) => { const n = new Set(prev); n.add(newMsg.id); return n; });
+    }, 1500);
 
     // Simulate typing + reply
     setIsTyping(true);
@@ -131,6 +158,59 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
   };
 
   const formatRecording = (s: number) => `0:0${s}`;
+
+  const handleLongPressStart = (msgId: string) => {
+    longPressTimerRef.current = setTimeout(() => {
+      setEmojiPickerMsgId(msgId);
+    }, 500);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const addReaction = (msgId: string, emoji: string) => {
+    setReactions((prev) => {
+      const msgReactions = prev[msgId] ? [...prev[msgId]] : [];
+      const existing = msgReactions.find((r) => r.emoji === emoji);
+      if (existing) {
+        if (existing.reacted) {
+          // toggle off
+          const updated = msgReactions.map((r) =>
+            r.emoji === emoji ? { ...r, count: r.count - 1, reacted: false } : r
+          ).filter((r) => r.count > 0);
+          return { ...prev, [msgId]: updated };
+        } else {
+          return { ...prev, [msgId]: msgReactions.map((r) =>
+            r.emoji === emoji ? { ...r, count: r.count + 1, reacted: true } : r
+          )};
+        }
+      } else {
+        return { ...prev, [msgId]: [...msgReactions, { emoji, count: 1, reacted: true }] };
+      }
+    });
+    setEmojiPickerMsgId(null);
+  };
+
+  const sendPhotoMessage = (photoUrl: string) => {
+    const newMsg: Message = {
+      id: `msg-photo-${Date.now()}`,
+      senderId: 'me',
+      text: `📷 [Photo]`,
+      timestamp: new Date(),
+      read: true,
+    };
+    // We'll store photo URL in a separate map
+    setPhotoMessages((prev) => ({ ...prev, [newMsg.id]: photoUrl }));
+    setMessages((prev) => [...prev, newMsg]);
+    setShowPhotoPicker(false);
+    setTimeout(() => {
+      setReadMsgIds((prev) => { const n = new Set(prev); n.add(newMsg.id); return n; });
+    }, 1500);
+  };
 
   const groupMessagesByDate = (msgs: Message[]) => {
     const groups: { date: string; messages: Message[] }[] = [];
@@ -260,6 +340,10 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
                 const isMe = msg.senderId === 'me';
                 const isLast = i === group.messages.length - 1 ||
                   group.messages[i + 1]?.senderId !== msg.senderId;
+                const msgReactions = reactions[msg.id] || [];
+                const isRead = readMsgIds.has(msg.id);
+                const photoUrl = photoMessages[msg.id];
+                const showEmojiPicker = emojiPickerMsgId === msg.id;
 
                 return (
                   <motion.div
@@ -278,20 +362,83 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
                     )}
                     {!isMe && !isLast && <div className="w-7 flex-shrink-0" />}
 
-                    <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
+                    <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5 relative`}>
+                      {/* Emoji Reaction Picker (floating above bubble) */}
+                      <AnimatePresence>
+                        {showEmojiPicker && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8, y: 5 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, y: 5 }}
+                            className={`absolute bottom-full mb-2 z-30 bg-brand-card border border-white/20 rounded-2xl px-3 py-2 flex gap-2 shadow-xl ${isMe ? 'right-0' : 'left-0'}`}
+                          >
+                            {reactionEmojis.map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => addReaction(msg.id, emoji)}
+                                className="text-xl hover:scale-125 transition-transform"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       <div
-                        className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                        onMouseDown={() => handleLongPressStart(msg.id)}
+                        onMouseUp={handleLongPressEnd}
+                        onMouseLeave={handleLongPressEnd}
+                        onTouchStart={() => handleLongPressStart(msg.id)}
+                        onTouchEnd={handleLongPressEnd}
+                        className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed cursor-pointer select-none ${
                           isMe
                             ? 'gradient-brand text-white rounded-br-sm'
                             : 'bg-brand-card border border-white/10 text-white/90 rounded-bl-sm'
                         }`}
                       >
-                        {msg.text}
+                        {photoUrl ? (
+                          <img
+                            src={photoUrl}
+                            alt="Shared photo"
+                            className="w-40 h-40 rounded-xl object-cover"
+                          />
+                        ) : (
+                          msg.text
+                        )}
                       </div>
+
+                      {/* Reactions */}
+                      {msgReactions.length > 0 && (
+                        <div className={`flex gap-1 flex-wrap ${isMe ? 'justify-end' : 'justify-start'}`}>
+                          {msgReactions.map((r) => (
+                            <button
+                              key={r.emoji}
+                              onClick={() => addReaction(msg.id, r.emoji)}
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-colors ${
+                                r.reacted
+                                  ? 'bg-purple-500/30 border-purple-500/50 text-white'
+                                  : 'bg-white/5 border-white/15 text-white/60'
+                              }`}
+                            >
+                              {r.emoji} {r.count}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       {isLast && (
-                        <span className="text-white/30 text-[10px] px-1">
+                        <span className="text-white/30 text-[10px] px-1 flex items-center gap-1">
                           {formatTime(msg.timestamp)}
-                          {isMe && <span className="ml-1">{msg.read ? '✓✓' : '✓'}</span>}
+                          {isMe && (
+                            <motion.span
+                              animate={{ color: isRead ? '#a855f7' : 'rgba(255,255,255,0.4)' }}
+                              transition={{ duration: 0.5 }}
+                              className="ml-1"
+                            >
+                              ✓✓
+                            </motion.span>
+                          )}
                         </span>
                       )}
                     </div>
@@ -438,6 +585,41 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
         )}
       </AnimatePresence>
 
+      {/* Photo Picker */}
+      <AnimatePresence>
+        {showPhotoPicker && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-white/10 bg-brand-card/80 backdrop-blur overflow-hidden"
+          >
+            <div className="px-4 py-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-white/70 text-xs font-bold">📸 Choose a photo</p>
+                <button
+                  onClick={() => setShowPhotoPicker(false)}
+                  className="text-white/40 hover:text-white/70"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="flex gap-2">
+                {mockPhotos.map((photo, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendPhotoMessage(photo)}
+                    className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 border-white/10 hover:border-purple-500/60 transition-colors"
+                  >
+                    <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Report Modal */}
       <ReportModal
         isOpen={showReport}
@@ -481,6 +663,14 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
           }`}
         >
           <Smile size={20} />
+        </button>
+        <button
+          onClick={() => setShowPhotoPicker(!showPhotoPicker)}
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+            showPhotoPicker ? 'text-purple-400 bg-purple-500/20' : 'text-white/40 hover:text-white/70'
+          }`}
+        >
+          <ImageIcon size={20} />
         </button>
 
         <input

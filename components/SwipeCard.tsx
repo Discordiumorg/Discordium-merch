@@ -13,6 +13,7 @@ interface SwipeCardProps {
   onSuperLike: () => void;
   isTop: boolean;
   zIndex: number;
+  compatibilityScore?: number;
 }
 
 export default function SwipeCard({
@@ -22,6 +23,7 @@ export default function SwipeCard({
   onSuperLike,
   isTop,
   zIndex,
+  compatibilityScore,
 }: SwipeCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
@@ -85,6 +87,21 @@ export default function SwipeCard({
               <ChevronRight size={20} />
             </button>
           </>
+        )}
+
+        {/* Compatibility Score Badge */}
+        {compatibilityScore !== undefined && (
+          <div className={`absolute top-3 right-3 z-20 px-2.5 py-1.5 rounded-full text-xs font-bold shadow-lg ${
+            compatibilityScore >= 80
+              ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white'
+              : compatibilityScore >= 60
+              ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white'
+              : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white'
+          }`}>
+            {compatibilityScore >= 80
+              ? `${compatibilityScore}% Match ✦`
+              : `${compatibilityScore}% Match`}
+          </div>
         )}
 
         {/* Photo dots */}

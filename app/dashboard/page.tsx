@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Settings, RefreshCw, Zap, Flag, Eye, Plus } from 'lucide-react';
+import { Flame, Settings, RefreshCw, Zap, Flag, Eye, Plus, Bell } from 'lucide-react';
 import AuraLogo from '@/components/AuraLogo';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
@@ -31,6 +31,10 @@ export default function DashboardPage() {
   const [seenStories, setSeenStories] = useState<Set<string>>(new Set());
   const [winkToast, setWinkToast] = useState<string | null>(null);
   const [showMomentCreator, setShowMomentCreator] = useState(false);
+  const [spotlightActive, setSpotlightActive] = useState(false);
+  const [spotlightViewers, setSpotlightViewers] = useState(40);
+  const spotlightTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const spotlightDismissRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
   const newVisitors = mockVisitors.filter((v) => {
@@ -97,6 +101,34 @@ export default function DashboardPage() {
     setTimeout(() => setWinkToast(null), 2500);
   }, [cardStack]);
 
+  const activateSpotlight = () => {
+    if (spotlightActive) return;
+    setSpotlightActive(true);
+    setSpotlightViewers(40);
+    // Animate viewers upward over 3s
+    let count = 40;
+    spotlightTimerRef.current = setInterval(() => {
+      count += Math.floor(Math.random() * 3) + 1;
+      if (count >= 60) {
+        count = 60;
+        if (spotlightTimerRef.current) clearInterval(spotlightTimerRef.current);
+      }
+      setSpotlightViewers(count);
+    }, 150);
+    // Auto-dismiss after 30s
+    spotlightDismissRef.current = setTimeout(() => {
+      setSpotlightActive(false);
+      if (spotlightTimerRef.current) clearInterval(spotlightTimerRef.current);
+    }, 30000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (spotlightTimerRef.current) clearInterval(spotlightTimerRef.current);
+      if (spotlightDismissRef.current) clearTimeout(spotlightDismissRef.current);
+    };
+  }, []);
+
   const handleOpenStory = (index: number) => {
     setSeenStories((prev) => {
       const next = new Set(prev);
@@ -124,6 +156,16 @@ export default function DashboardPage() {
               <RefreshCw size={16} />
             </motion.button>
           )}
+          {/* Notifications Bell */}
+          <button
+            onClick={() => router.push('/notifications')}
+            className="relative w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+          >
+            <Bell size={18} />
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] font-black flex items-center justify-center">
+              3
+            </span>
+          </button>
           <button className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors">
             <Settings size={18} />
           </button>
@@ -299,6 +341,79 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
 
+      {/* Spotlight Banner */}
+      <AnimatePresence>
+        {spotlightActive && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mx-5 mb-2 rounded-2xl px-4 py-3 flex items-center gap-3 border border-yellow-500/30"
+            style={{ background: 'linear-gradient(135deg, rgba(234,179,8,0.15) 0%, rgba(251,146,60,0.15) 100%)' }}
+          >
+            <span className="text-2xl">🔦</span>
+            <div className="flex-1">
+              <p className="text-yellow-300 font-bold text-sm">You&apos;re in the spotlight!</p>
+              <p className="text-yellow-300/70 text-xs">
+                <motion.span
+                  key={spotlightViewers}
+                  initial={{ opacity: 0.5 }}
+                  animate={{ opacity: 1 }}
+                >
+                  {spotlightViewers}
+                </motion.span>
+                {' '}people viewing your profile
+              </p>
+            </div>
+            <button
+              onClick={() => setSpotlightActive(false)}
+              className="text-yellow-300/50 hover:text-yellow-300 text-xs"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Feature Strip: Spotlight + Daily Match */}
+      <div className="px-5 mb-2 flex gap-2">
+        {/* Daily Match Banner */}
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={() => router.push('/daily-match')}
+          animate={{ boxShadow: ['0 0 0px rgba(234,179,8,0)', '0 0 12px rgba(234,179,8,0.4)', '0 0 0px rgba(234,179,8,0)'] }}
+          transition={{ repeat: Infinity, duration: 2.5 }}
+          className="flex-1 rounded-2xl p-3 flex items-center gap-2 border"
+          style={{
+            background: 'linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(236,72,153,0.2) 100%)',
+            borderColor: 'rgba(236,72,153,0.4)',
+          }}
+        >
+          <span className="text-xl">⭐</span>
+          <div className="text-left">
+            <p className="text-white font-bold text-xs">Daily Match ready!</p>
+            <p className="text-white/50 text-[10px]">Tap to reveal</p>
+          </div>
+        </motion.button>
+
+        {/* Spotlight Button */}
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={activateSpotlight}
+          className={`flex-1 rounded-2xl p-3 flex items-center gap-2 border transition-all ${
+            spotlightActive
+              ? 'border-yellow-500/60 bg-yellow-500/20'
+              : 'border-white/15 bg-white/5'
+          }`}
+        >
+          <span className="text-xl">🔦</span>
+          <div className="text-left">
+            <p className="text-white font-bold text-xs">Spotlight</p>
+            <p className="text-white/50 text-[10px]">{spotlightActive ? 'Active!' : 'Get noticed'}</p>
+          </div>
+        </motion.button>
+      </div>
+
       {/* Card Stack */}
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         {cardStack.length > 0 ? (
@@ -315,6 +430,8 @@ export default function DashboardPage() {
             {cardStack.slice(-3).map((user, index, arr) => {
               const isTop = index === arr.length - 1;
               const stackPos = arr.length - 1 - index;
+              const cardIndex = mockUsers.indexOf(user);
+              const compatibilityScore = (55 + cardIndex * 8) % 45 + 55;
 
               return (
                 <motion.div
@@ -334,6 +451,7 @@ export default function DashboardPage() {
                     onSuperLike={handleSuperLike}
                     isTop={isTop}
                     zIndex={index}
+                    compatibilityScore={compatibilityScore}
                   />
                 </motion.div>
               );
