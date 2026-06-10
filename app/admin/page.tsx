@@ -226,8 +226,16 @@ export default function AdminPage() {
           <button
             onClick={() => router.push('/admin/security')}
             className="w-8 h-8 bg-purple-500/20 border border-purple-500/30 rounded-xl flex items-center justify-center text-purple-400 hover:text-purple-300 transition-colors"
+            title="Security Center"
           >
             <Shield size={14} />
+          </button>
+          <button
+            onClick={() => router.push('/admin/audit')}
+            className="w-8 h-8 bg-blue-500/20 border border-blue-500/30 rounded-xl flex items-center justify-center text-blue-400 hover:text-blue-300 transition-colors"
+            title="Audit Log"
+          >
+            <Activity size={14} />
           </button>
           <button onClick={handleSignOut} className="w-8 h-8 card-glass rounded-xl flex items-center justify-center text-white/50 hover:text-red-400 transition-colors text-xs font-black">
             ✕

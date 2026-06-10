@@ -1,5 +1,33 @@
 export type ThreatLevel = 'low' | 'medium' | 'high' | 'critical';
 
+export type AuditAction =
+  | 'user_banned'
+  | 'user_unbanned'
+  | 'ip_blocked'
+  | 'ip_unblocked'
+  | 'report_dismissed'
+  | 'report_actioned'
+  | 'content_removed'
+  | 'content_approved'
+  | 'waf_rule_toggled'
+  | 'rate_limit_changed'
+  | 'admin_login'
+  | 'mod_login'
+  | 'settings_changed'
+  | 'data_exported';
+
+export interface AuditLog {
+  id: string;
+  action: AuditAction;
+  actor: string;         // admin or mod username
+  actorRole: 'admin' | 'mod';
+  target?: string;       // user/IP being acted on
+  detail: string;
+  timestamp: Date;
+  ipAddress: string;
+  severity: 'info' | 'warning' | 'critical';
+}
+
 export interface SecurityEvent {
   id: string;
   type: 'rate_limit' | 'blocked_ip' | 'waf_trigger' | 'failed_login' | 'suspicious' | 'ddos';
@@ -79,6 +107,24 @@ export const mockWafRules: WafRule[] = [
   { id: 'w4', name: 'Code Injection', pattern: 'exec\\(|eval\\(|system\\(', description: 'Block remote code execution attempts', enabled: true, triggerCount: 8 },
   { id: 'w5', name: 'Bot Detection', pattern: 'python-requests|curl/|wget/', description: 'Flag known bot user agents', enabled: false, triggerCount: 1840 },
   { id: 'w6', name: 'Encoded Attacks', pattern: '%3cscript|%27|%22%3e', description: 'Block URL-encoded attack patterns', enabled: true, triggerCount: 31 },
+];
+
+export const mockAuditLogs: AuditLog[] = [
+  { id: 'a1', action: 'admin_login', actor: 'admin', actorRole: 'admin', detail: 'Admin logged in from 192.168.1.1', timestamp: mins(5), ipAddress: '192.168.1.1', severity: 'info' },
+  { id: 'a2', action: 'ip_blocked', actor: 'admin', actorRole: 'admin', target: '185.220.101.45', detail: 'Manually blocked IP for DDoS activity', timestamp: mins(8), ipAddress: '192.168.1.1', severity: 'warning' },
+  { id: 'a3', action: 'user_banned', actor: 'mod_sophia', actorRole: 'mod', target: 'user_7742', detail: 'Banned for sending explicit unsolicited content', timestamp: mins(15), ipAddress: '10.0.0.42', severity: 'warning' },
+  { id: 'a4', action: 'content_removed', actor: 'mod_sophia', actorRole: 'mod', target: 'photo_4491', detail: 'Removed profile photo violating community guidelines', timestamp: mins(22), ipAddress: '10.0.0.42', severity: 'info' },
+  { id: 'a5', action: 'report_actioned', actor: 'mod_felix', actorRole: 'mod', target: 'user_1823', detail: 'Issued formal warning after harassment report', timestamp: mins(45), ipAddress: '10.0.0.55', severity: 'warning' },
+  { id: 'a6', action: 'waf_rule_toggled', actor: 'admin', actorRole: 'admin', target: 'Bot Detection', detail: 'Enabled Bot Detection WAF rule', timestamp: hours(1), ipAddress: '192.168.1.1', severity: 'info' },
+  { id: 'a7', action: 'report_dismissed', actor: 'mod_felix', actorRole: 'mod', target: 'report_8812', detail: 'Dismissed spam report — no violation found', timestamp: hours(1), ipAddress: '10.0.0.55', severity: 'info' },
+  { id: 'a8', action: 'user_unbanned', actor: 'admin', actorRole: 'admin', target: 'user_3310', detail: 'Lifted ban after appeal review', timestamp: hours(2), ipAddress: '192.168.1.1', severity: 'info' },
+  { id: 'a9', action: 'rate_limit_changed', actor: 'admin', actorRole: 'admin', target: '/api/auth/*', detail: 'Changed auth rate limit from 20 to 10 req/min', timestamp: hours(3), ipAddress: '192.168.1.1', severity: 'warning' },
+  { id: 'a10', action: 'content_approved', actor: 'mod_sophia', actorRole: 'mod', target: 'photo_7723', detail: 'Approved flagged photo after manual review', timestamp: hours(4), ipAddress: '10.0.0.42', severity: 'info' },
+  { id: 'a11', action: 'data_exported', actor: 'admin', actorRole: 'admin', detail: 'Full user dataset exported (GDPR compliance)', timestamp: hours(6), ipAddress: '192.168.1.1', severity: 'warning' },
+  { id: 'a12', action: 'settings_changed', actor: 'admin', actorRole: 'admin', detail: 'Enabled 2FA enforcement for all admin accounts', timestamp: hours(8), ipAddress: '192.168.1.1', severity: 'warning' },
+  { id: 'a13', action: 'ip_unblocked', actor: 'admin', actorRole: 'admin', target: '77.234.1.45', detail: 'Lifted IP block after false-positive review', timestamp: hours(10), ipAddress: '192.168.1.1', severity: 'info' },
+  { id: 'a14', action: 'mod_login', actor: 'mod_felix', actorRole: 'mod', detail: 'Mod logged in from 10.0.0.55', timestamp: hours(12), ipAddress: '10.0.0.55', severity: 'info' },
+  { id: 'a15', action: 'user_banned', actor: 'admin', actorRole: 'admin', target: 'user_0091', detail: 'Permanent ban for verified underage account', timestamp: hours(24), ipAddress: '192.168.1.1', severity: 'critical' },
 ];
 
 export function getThreatLevel(events: SecurityEvent[]): ThreatLevel {

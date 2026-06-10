@@ -325,6 +325,14 @@ export default function SettingsPage() {
               </div>
             ))}
             <div className="pt-3 border-t border-white/10 space-y-2">
+              <button
+                onClick={() => router.push('/security')}
+                className="w-full flex items-center gap-3 py-2.5 text-left hover:opacity-80 transition-opacity"
+              >
+                <Lock size={16} className="text-purple-400" />
+                <span className="text-white/70 text-sm flex-1">Sicherheit &amp; Datenschutz</span>
+                <ChevronRight size={14} className="text-white/30" />
+              </button>
               <button className="w-full flex items-center gap-3 py-2.5 text-left hover:opacity-80 transition-opacity">
                 <Download size={16} className="text-white/50" />
                 <span className="text-white/70 text-sm flex-1">Meine Daten exportieren</span>

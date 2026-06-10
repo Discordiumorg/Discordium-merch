@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X, Mic, ImageIcon } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Flag, X, Mic, ImageIcon, Lock } from 'lucide-react';
 import { Match, Message, formatRelativeTime } from '@/lib/mockData';
 import ReportModal from '@/components/ReportModal';
 
@@ -262,7 +262,13 @@ export default function ChatWindow({ match, onClose }: ChatWindowProps) {
         </div>
 
         <div className="flex-1">
-          <h3 className="text-white font-semibold text-base leading-tight">{match.user.name}</h3>
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-white font-semibold text-base leading-tight">{match.user.name}</h3>
+            <span className="flex items-center gap-0.5 bg-green-500/15 border border-green-500/30 rounded-full px-1.5 py-0.5">
+              <Lock size={8} className="text-green-400" />
+              <span className="text-green-400 text-[9px] font-medium">E2E</span>
+            </span>
+          </div>
           <p className="text-white/50 text-xs">
             {match.user.online ? (
               <span className="text-green-400">Active now</span>
