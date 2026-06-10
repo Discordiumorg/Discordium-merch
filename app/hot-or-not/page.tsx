@@ -50,7 +50,7 @@ function SwipeCard({
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-18, 18]);
   const hotOpacity = useTransform(x, [30, 120], [0, 1]);
-  const notOpacity = useTransform(x, [-120, -30], [1, 0]);
+  const notOpacity = useTransform(x, [-120, -30], [0, 1]);
 
   if (!isTop) {
     return (

@@ -504,6 +504,30 @@ export default function SettingsPage() {
           </button>
         </div>
 
+        {/* ── Staff Access ── */}
+        <div className="card-glass rounded-2xl overflow-hidden border border-purple-500/15">
+          <div className="px-4 py-3 border-b border-white/10">
+            <p className="text-purple-400/60 text-xs font-semibold uppercase tracking-wider">Staff Access</p>
+          </div>
+          {[
+            { label: 'Admin Panel', icon: Shield, path: '/admin', badge: 'Admin' },
+            { label: 'Mod Panel', icon: Lock, path: '/mod', badge: 'Mod' },
+          ].map((item, i) => (
+            <button
+              key={i}
+              onClick={() => router.push(item.path)}
+              className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-colors ${i < 1 ? 'border-b border-white/5' : ''}`}
+            >
+              <div className="w-8 h-8 bg-purple-500/15 rounded-lg flex items-center justify-center">
+                <item.icon size={15} className="text-purple-400" />
+              </div>
+              <span className="flex-1 text-sm font-medium text-white/80 text-left">{item.label}</span>
+              <span className="text-[10px] bg-purple-500/20 text-purple-400 font-bold px-2 py-0.5 rounded-full mr-2">{item.badge}</span>
+              <ChevronRight size={16} className="text-white/30" />
+            </button>
+          ))}
+        </div>
+
         {/* Version */}
         <div className="text-center py-2">
           <p className="text-white/20 text-xs">Aura v1.0.0</p>

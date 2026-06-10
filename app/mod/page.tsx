@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, Flag, Ban, Check, X, Eye, MessageSquare,
@@ -86,6 +86,30 @@ const TYPE_ICONS: Record<string, string> = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ModPage() {
+  const [authed, setAuthed] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState(false);
+  const MOD_PIN = '0000';
+
+  useEffect(() => {
+    if (sessionStorage.getItem('aura_mod_auth') === 'true') setAuthed(true);
+  }, []);
+
+  const handlePin = (digit: string) => {
+    const next = pin + digit;
+    setPin(next);
+    if (next.length === 4) {
+      if (next === MOD_PIN) {
+        sessionStorage.setItem('aura_mod_auth', 'true');
+        setAuthed(true);
+        setPin('');
+      } else {
+        setPinError(true);
+        setTimeout(() => { setPin(''); setPinError(false); }, 800);
+      }
+    }
+  };
+
   const [tab, setTab] = useState<'reports' | 'bans' | 'content' | 'log'>('reports');
   const [reports, setReports] = useState<Report[]>(REPORTS);
   const [bans, setBans] = useState<BannedUser[]>(BANNED_USERS);
@@ -94,6 +118,47 @@ export default function ModPage() {
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'resolved'>('open');
+
+  if (!authed) {
+    return (
+      <div className="min-h-screen bg-brand-dark flex items-center justify-center px-8">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center w-full max-w-xs">
+          <div className="w-16 h-16 bg-orange-500/20 border border-orange-500/30 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Shield size={28} className="text-orange-400" />
+          </div>
+          <h1 className="text-white font-black text-2xl mb-1">Mod Access</h1>
+          <p className="text-white/40 text-sm mb-8">Enter your 4-digit PIN</p>
+          <div className="flex justify-center gap-3 mb-8">
+            {[0, 1, 2, 3].map((i) => (
+              <motion.div
+                key={i}
+                animate={pinError ? { x: [-4, 4, -4, 4, 0] } : {}}
+                transition={{ duration: 0.3 }}
+                className={`w-4 h-4 rounded-full border-2 transition-all ${
+                  i < pin.length ? 'bg-orange-500 border-orange-500' : pinError ? 'border-red-400' : 'border-white/30'
+                }`}
+              />
+            ))}
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {['1','2','3','4','5','6','7','8','9','','0','⌫'].map((d, i) => (
+              <button
+                key={i}
+                onClick={() => d === '⌫' ? setPin((p) => p.slice(0, -1)) : d ? handlePin(d) : undefined}
+                disabled={!d && d !== '0'}
+                className={`h-14 rounded-2xl text-xl font-bold transition-all ${
+                  d ? 'card-glass text-white hover:bg-white/15 active:scale-95' : 'opacity-0 pointer-events-none'
+                }`}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+          <p className="text-white/20 text-xs mt-6">Demo PIN: 0000</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   const showToast = (msg: string) => {
     setToast(msg);

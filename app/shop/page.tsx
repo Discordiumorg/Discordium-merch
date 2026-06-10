@@ -451,7 +451,11 @@ export default function ShopPage() {
                 </div>
                 <motion.button
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => setInventory((inv) => ({ ...inv, coins: Math.max(0, inv.coins - 200) }))}
+                  onClick={() => {
+                    if (inventory.coins < 200) { triggerSuccess('no-coins'); return; }
+                    setInventory((inv) => ({ ...inv, coins: inv.coins - 200 }));
+                    triggerSuccess('spotlight-30');
+                  }}
                   className="flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg"
                 >
                   Activate
@@ -515,7 +519,11 @@ export default function ShopPage() {
                   </div>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setInventory((inv) => ({ ...inv, coins: Math.max(0, inv.coins - rose.coins) }))}
+                    onClick={() => {
+                      if (inventory.coins < rose.coins) { triggerSuccess('no-coins'); return; }
+                      setInventory((inv) => ({ ...inv, coins: inv.coins - rose.coins, roses: inv.roses + 1 }));
+                      triggerSuccess(rose.id);
+                    }}
                     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r ${rose.color} text-white shadow-lg`}
                   >
                     {rose.coins} 🪙

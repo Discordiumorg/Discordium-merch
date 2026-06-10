@@ -175,7 +175,10 @@ export default function ProfilePage() {
                     alt={profile.name}
                     className="w-28 h-28 rounded-3xl object-cover border-4 border-purple-500/50 shadow-2xl"
                   />
-                  <button className="absolute bottom-0 right-0 w-9 h-9 gradient-brand rounded-xl flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity">
+                  <button
+                    onClick={() => alert('Photo upload — connect to storage in production')}
+                    className="absolute bottom-0 right-0 w-9 h-9 gradient-brand rounded-xl flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity"
+                  >
                     <Camera size={16} className="text-white" />
                   </button>
                   {profile.verified && (
@@ -517,7 +520,10 @@ export default function ProfilePage() {
                     </div>
                   ))}
                   {profile.photos.length < 6 && (
-                    <button className="aspect-square rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-1.5 hover:border-purple-500/50 hover:bg-purple-500/5 transition-colors">
+                    <button
+                      onClick={() => alert('Photo upload — connect to storage in production')}
+                      className="aspect-square rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-1.5 hover:border-purple-500/50 hover:bg-purple-500/5 transition-colors"
+                    >
                       <Plus size={20} className="text-white/40" />
                       <span className="text-white/30 text-[10px]">Add photo</span>
                     </button>
@@ -773,7 +779,10 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-                <button className="mt-4 w-full bg-white text-purple-700 font-black py-3 rounded-xl hover:bg-white/90 transition-colors">
+                <button
+                  onClick={() => router.push('/premium')}
+                  className="mt-4 w-full bg-white text-purple-700 font-black py-3 rounded-xl hover:bg-white/90 transition-colors"
+                >
                   Upgrade Now ✨
                 </button>
               </div>

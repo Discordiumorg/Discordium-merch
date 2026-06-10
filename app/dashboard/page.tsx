@@ -166,7 +166,10 @@ export default function DashboardPage() {
               3
             </span>
           </button>
-          <button className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+          <button
+            onClick={() => router.push('/settings')}
+            className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+          >
             <Settings size={18} />
           </button>
         </div>
@@ -578,7 +581,7 @@ export default function DashboardPage() {
 
               <div className="space-y-3">
                 <button
-                  onClick={() => setShowMatchModal(null)}
+                  onClick={() => { setShowMatchModal(null); router.push('/matches'); }}
                   className="w-full gradient-brand text-white font-bold py-3 rounded-2xl glow-purple hover:opacity-90 transition-opacity"
                 >
                   Send a Message 💬
