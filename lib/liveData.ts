@@ -24,11 +24,40 @@ export interface LiveMessage {
   userId: string;
   userName: string;
   text: string;
-  type: 'chat' | 'gift' | 'join' | 'like';
+  type: 'chat' | 'gift' | 'join' | 'like' | 'system';
   giftEmoji?: string;
   giftName?: string;
   timestamp: Date;
   color: string;
+  isMod?: boolean;
+  isSubscriber?: boolean;
+  deleted?: boolean;
+  flagged?: boolean;
+  pinned?: boolean;
+  reportCount?: number;
+  timedOut?: boolean;
+}
+
+export type ModActionType =
+  | 'delete'
+  | 'timeout_5m'
+  | 'timeout_1h'
+  | 'ban'
+  | 'unban'
+  | 'pin'
+  | 'unpin'
+  | 'clear_chat'
+  | 'slow_mode'
+  | 'sub_only'
+  | 'word_filter';
+
+export interface ModAction {
+  id: string;
+  type: ModActionType;
+  actorName: string;
+  targetUser?: string;
+  detail: string;
+  timestamp: Date;
 }
 
 export interface LiveGift {
@@ -288,6 +317,7 @@ function makeMsg(
   text: string,
   giftEmoji?: string,
   giftName?: string,
+  extra?: Partial<LiveMessage>,
 ): LiveMessage {
   msgCounter++;
   return {
@@ -300,29 +330,39 @@ function makeMsg(
     giftName,
     timestamp: new Date(),
     color: randomColor(parseInt(userId.replace(/\D/g, ''), 10) || msgCounter),
+    reportCount: 0,
+    ...extra,
   };
 }
 
 export function generateLiveMessages(): LiveMessage[] {
   const msgs: LiveMessage[] = [];
 
-  // Pre-seed with 30 messages per "stream" but return a pool
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 40; i++) {
     const userIdx = i % chatUsers.length;
     const userId = `u${userIdx + 1}`;
     const userName = chatUsers[userIdx];
-    const roll = i % 10;
+    const roll = i % 12;
 
-    if (roll < 6) {
-      // Regular chat
-      msgs.push(makeMsg(userId, userName, 'chat', chatTexts[i % chatTexts.length]));
-    } else if (roll < 8) {
-      // Gift event
+    if (roll === 0) {
+      // Mod message
+      msgs.push(makeMsg(userId, userName, 'chat', chatTexts[i % chatTexts.length], undefined, undefined, { isMod: true }));
+    } else if (roll < 6) {
+      // Regular chat — some with subscriber flag
+      msgs.push(makeMsg(userId, userName, 'chat', chatTexts[i % chatTexts.length], undefined, undefined, { isSubscriber: i % 3 === 0 }));
+    } else if (roll === 6) {
+      // Flagged message (word filter would catch this)
+      msgs.push(makeMsg(userId, userName, 'chat', chatTexts[i % chatTexts.length], undefined, undefined, { flagged: true, reportCount: 2 }));
+    } else if (roll < 9) {
+      // Gift
       const gift = liveGifts[i % liveGifts.length];
-      msgs.push(makeMsg(userId, userName, 'gift', `${userName} sent ${gift.name} ${gift.emoji}`, gift.emoji, gift.name));
-    } else {
-      // Join event
+      msgs.push(makeMsg(userId, userName, 'gift', `${userName} sent ${gift.name} ${gift.emoji}`, gift.emoji, gift.name, { isSubscriber: true }));
+    } else if (roll === 9) {
+      // Join
       msgs.push(makeMsg(userId, userName, 'join', `${userName} joined`));
+    } else {
+      // Regular chat
+      msgs.push(makeMsg(userId, userName, 'chat', chatTexts[(i + 5) % chatTexts.length]));
     }
   }
 

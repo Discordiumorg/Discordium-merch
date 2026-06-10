@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { anonymizeIp } from '@/lib/privacy';
 
 // ── Rate limit store (in-memory; use Redis in production) ──────────────────
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -30,7 +31,9 @@ function getClientIp(req: NextRequest): string {
 
 function checkRateLimit(ip: string, path: string): { allowed: boolean; remaining: number; limit: number } {
   const rule = getRateLimitRule(path);
-  const key = `${ip}:${path}`;
+  // Rate-limit key uses ANONYMIZED IP — raw IPs are never persisted in memory
+  const anonIp = anonymizeIp(ip);
+  const key = `${anonIp}:${path}`;
   const now = Date.now();
 
   const entry = rateLimitStore.get(key);
@@ -213,6 +216,9 @@ export function middleware(req: NextRequest) {
   // Rate limit headers
   res.headers.set('X-RateLimit-Limit', String(limit));
   res.headers.set('X-RateLimit-Remaining', String(remaining));
+
+  // Signal that IPs are anonymized before any logging/analytics
+  res.headers.set('X-Privacy-Anonymized', 'ip=1; retention=30d');
 
   return res;
 }
