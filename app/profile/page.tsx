@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
@@ -28,7 +28,16 @@ import {
   Lock,
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
-import { currentUser, mockMatches, mockVisitors, goalColors, goalEmojis, RelationshipGoal } from '@/lib/mockData';
+
+type RelationshipGoal = 'casual' | 'serious' | 'friends+' | 'open relationship' | 'not sure yet';
+
+const goalColors: Record<string, string> = {
+  casual: 'text-orange-400', serious: 'text-pink-400', 'friends+': 'text-green-400',
+  'open relationship': 'text-purple-400', 'not sure yet': 'text-blue-400',
+};
+const goalEmojis: Record<string, string> = {
+  casual: '🔥', serious: '💍', 'friends+': '✨', 'open relationship': '🌈', 'not sure yet': '🤔',
+};
 
 const allGoals: RelationshipGoal[] = ['casual', 'serious', 'friends+', 'open relationship', 'not sure yet'];
 const allInterests = [
@@ -37,9 +46,28 @@ const allInterests = [
   'Design', 'Cycling', 'Swimming', 'Languages', 'Meditation', 'Fashion',
 ];
 
+interface ProfileState {
+  id: string; name: string; bio: string; location: string; age: number;
+  gender: string; photoUrl: string; verified: boolean; premium: boolean;
+  premiumTier: string | null; interests: string[]; relationshipGoal: string;
+  email: string; coins: number; diamonds: number; boosts: number;
+  superLikes: number; roses: number; profileViews: number;
+  job: string; education: string; height: string;
+  photos: string[]; socialLinks: Record<string, string>;
+}
+
+const DEFAULT_PROFILE: ProfileState = {
+  id: '', name: '', bio: '', location: '', age: 25, gender: '', photoUrl: '',
+  verified: false, premium: false, premiumTier: null, interests: [],
+  relationshipGoal: '', email: '', coins: 0, diamonds: 0, boosts: 0,
+  superLikes: 0, roses: 0, profileViews: 0, job: '', education: '', height: '',
+  photos: [], socialLinks: {},
+};
+
 export default function ProfilePage() {
   const router = useRouter();
-  const [profile, setProfile] = useState({ ...currentUser });
+  const [profile, setProfile] = useState<ProfileState>(DEFAULT_PROFILE);
+  const [loading, setLoading] = useState(true);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState('');
   const [saved, setSaved] = useState(false);
@@ -50,20 +78,46 @@ export default function ProfilePage() {
     { id: 'req2', name: 'Marcus', photo: 'https://picsum.photos/seed/marcus1/200/200' },
   ]);
 
-  const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
-  const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
+  // Load real user profile from API
+  useEffect(() => {
+    fetch('/api/user/profile')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          const u = data.user;
+          setProfile({
+            id: u.id ?? '',
+            name: u.name ?? '',
+            bio: u.bio ?? '',
+            location: u.location ?? '',
+            age: u.age ?? 25,
+            gender: u.gender ?? '',
+            photoUrl: u.photoUrl ?? `https://picsum.photos/seed/${u.id}/400/600`,
+            verified: u.verified ?? false,
+            premium: u.premium ?? false,
+            premiumTier: u.premiumTier ?? null,
+            interests: u.interests ? JSON.parse(u.interests) : [],
+            relationshipGoal: u.goal ?? '',
+            email: u.email ?? '',
+            coins: u.coins ?? 0,
+            diamonds: u.diamonds ?? 0,
+            boosts: u.boosts ?? 0,
+            superLikes: u.superLikes ?? 0,
+            roses: u.roses ?? 0,
+            profileViews: 0,
+            job: '', education: '', height: '',
+            photos: u.photoUrl ? [u.photoUrl] : [],
+            socialLinks: {},
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const startEdit = (field: string, value: string) => {
     setEditingField(field);
     setTempValue(value);
-  };
-
-  const saveEdit = () => {
-    if (editingField) {
-      setProfile((prev) => ({ ...prev, [editingField]: tempValue }));
-      setEditingField(null);
-      showSaved();
-    }
   };
 
   const showSaved = () => {
@@ -71,49 +125,52 @@ export default function ProfilePage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const patchProfile = useCallback(async (data: Record<string, unknown>) => {
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) showSaved();
+    } catch { /* silent */ }
+  }, []);
+
+  const saveEdit = () => {
+    if (!editingField) return;
+    const val = editingField === 'age' ? parseInt(tempValue) || tempValue : tempValue;
+    setProfile((prev) => ({ ...prev, [editingField]: val }));
+    setEditingField(null);
+    // Map profile field names to API field names
+    const apiField = editingField === 'relationshipGoal' ? 'goal' : editingField;
+    patchProfile({ [apiField]: val });
+  };
+
   const toggleInterest = (interest: string) => {
-    setProfile((prev) => ({
-      ...prev,
-      interests: prev.interests.includes(interest)
+    setProfile((prev) => {
+      const next = prev.interests.includes(interest)
         ? prev.interests.filter((i) => i !== interest)
-        : [...prev.interests, interest],
-    }));
-    showSaved();
+        : [...prev.interests, interest];
+      patchProfile({ interests: JSON.stringify(next) });
+      return { ...prev, interests: next };
+    });
   };
 
   const handleGoalChange = (goal: RelationshipGoal) => {
     setProfile((prev) => ({ ...prev, relationshipGoal: goal }));
-    showSaved();
+    patchProfile({ goal });
   };
 
   const stats = [
     { label: 'Profile Views', value: profile.profileViews, icon: Eye, color: 'text-blue-400' },
-    { label: 'Matches', value: mockMatches.length, icon: Heart, color: 'text-red-400' },
-    { label: 'Super Likes', value: 7, icon: Star, color: 'text-yellow-400' },
+    { label: 'Super Likes', value: profile.superLikes, icon: Star, color: 'text-yellow-400' },
+    { label: 'Roses', value: profile.roses, icon: Heart, color: 'text-red-400' },
   ];
 
-  const settingsGroups = [
-    {
-      title: 'Account',
-      items: [
-        { icon: Shield, label: 'Privacy settings', action: () => {} },
-        { icon: Bell, label: 'Notifications', action: () => {} },
-      ],
-    },
-    {
-      title: 'Support',
-      items: [
-        { icon: HelpCircle, label: 'Help & FAQ', action: () => {} },
-      ],
-    },
-    {
-      title: '',
-      items: [
-        { icon: LogOut, label: 'Sign out', action: () => router.push('/'), danger: true },
-      ],
-    },
-  ];
-  void settingsGroups;
+  const handleLogout = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch { /* ignore */ }
+    router.push('/');
+  };
 
   return (
     <div className="min-h-screen bg-brand-dark pb-safe">
@@ -847,7 +904,7 @@ export default function ProfilePage() {
               {/* Sign out */}
               <div className="card-glass rounded-2xl overflow-hidden">
                 <button
-                  onClick={() => router.push('/')}
+                  onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-4 hover:bg-red-500/5 transition-colors"
                 >
                   <div className="w-9 h-9 bg-red-500/10 rounded-xl flex items-center justify-center">
@@ -867,7 +924,7 @@ export default function ProfilePage() {
         </AnimatePresence>
       </div>
 
-      <BottomNav matchCount={unreadMatches} visitorCount={newVisitors} />
+      <BottomNav matchCount={0} visitorCount={0} />
     </div>
   );
 }

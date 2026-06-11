@@ -17,7 +17,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const allowed = ['name', 'bio', 'location', 'gender', 'age', 'photoUrl'];
+    const allowed = ['name', 'bio', 'location', 'gender', 'age', 'photoUrl', 'goal', 'interestedIn', 'interests', 'onboarded'];
     const data: Record<string, unknown> = {};
     for (const key of allowed) {
       if (key in body) data[key] = body[key];

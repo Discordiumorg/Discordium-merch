@@ -29,6 +29,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
+  const [finishing, setFinishing] = useState(false);
 
   // Step 2 – Photos
   const [photos, setPhotos] = useState<(string | null)[]>([null, null, null, null, null, null]);
@@ -430,11 +431,31 @@ export default function OnboardingPage() {
       <div className="px-4 pb-6">
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={step < TOTAL_STEPS ? goNext : () => router.push('/dashboard')}
-          disabled={!canProceed()}
+          onClick={step < TOTAL_STEPS ? goNext : async () => {
+            setFinishing(true);
+            try {
+              await fetch('/api/user/profile', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  name: name.trim(),
+                  age: parseInt(age) || undefined,
+                  gender,
+                  location: location.trim(),
+                  bio: bio.trim() || undefined,
+                  interests: JSON.stringify(selectedInterests),
+                  goal,
+                  interestedIn,
+                  onboarded: true,
+                }),
+              });
+            } catch { /* ignore — we navigate anyway */ }
+            router.push('/dashboard');
+          }}
+          disabled={!canProceed() || finishing}
           className="w-full py-4 rounded-2xl font-bold text-white gradient-brand glow-button disabled:opacity-40 text-base"
         >
-          {step < TOTAL_STEPS ? 'Continue →' : 'Finish Setup ✦'}
+          {finishing ? '⏳ Saving…' : step < TOTAL_STEPS ? 'Continue →' : 'Finish Setup ✦'}
         </motion.button>
       </div>
     </div>

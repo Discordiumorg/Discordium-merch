@@ -78,9 +78,10 @@ const MALICIOUS_UA_PATTERNS = [
 ];
 
 // Allowed CORS origins (expand in production)
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aura-dating.app';
 const ALLOWED_ORIGINS = [
-  'https://aura-dating.app',
-  'https://www.aura-dating.app',
+  APP_URL,
+  APP_URL.startsWith('https://') ? APP_URL.replace('https://', 'https://www.') : APP_URL,
 ];
 
 function isSuspicious(req: NextRequest): boolean {

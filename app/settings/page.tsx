@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { useI18n, languageLabels, Language } from '@/lib/i18n';
-import { mockMatches, mockVisitors } from '@/lib/mockData';
 
 function ToggleSwitch({ on, onChange }: { on: boolean; onChange: () => void }) {
   return (
@@ -51,13 +50,26 @@ export default function SettingsPage() {
   const router = useRouter();
   const { t, lang, setLang } = useI18n();
 
-  const unreadMatches = mockMatches.filter((m) => m.unreadCount > 0).length;
-  const newVisitors = mockVisitors.filter((v) => Date.now() - v.visitedAt.getTime() < 86400000).length;
-
   const [saved, setSaved] = useState(false);
-  const [name, setName] = useState('Alex');
-  const [age, setAge] = useState('27');
-  const [location, setLocation] = useState('Berlin');
+  const [saving, setSaving] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [location, setLocation] = useState('');
+
+  // Load real user data on mount
+  useEffect(() => {
+    fetch('/api/user/profile')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          setName(data.user.name ?? '');
+          setAge(data.user.age ? String(data.user.age) : '');
+          setLocation(data.user.location ?? '');
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Discovery
   const [distance, setDistance] = useState(50);
@@ -94,6 +106,26 @@ export default function SettingsPage() {
   const showSaved = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const saveProfile = async () => {
+    setSaving(true);
+    try {
+      await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), age: parseInt(age) || undefined, location: location.trim() }),
+      });
+      showSaved();
+    } catch { /* silent */ } finally { setSaving(false); }
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch { /* cookie cleared server-side */ }
+    router.push('/');
   };
 
   const SectionTitle = ({ title }: { title: string }) => (
@@ -186,10 +218,11 @@ export default function SettingsPage() {
             </div>
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={showSaved}
-              className="w-full gradient-brand text-white font-bold py-3 rounded-xl text-sm"
+              onClick={saveProfile}
+              disabled={saving}
+              className="w-full gradient-brand text-white font-bold py-3 rounded-xl text-sm disabled:opacity-60"
             >
-              {t.settings.save}
+              {saving ? '⏳ Speichern…' : t.settings.save}
             </motion.button>
           </div>
         </div>
@@ -502,13 +535,16 @@ export default function SettingsPage() {
         {/* ── Sign Out ── */}
         <div className="card-glass rounded-2xl overflow-hidden">
           <button
-            onClick={() => router.push('/')}
-            className="w-full flex items-center gap-3 px-4 py-4 hover:bg-red-500/5 transition-colors"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="w-full flex items-center gap-3 px-4 py-4 hover:bg-red-500/5 transition-colors disabled:opacity-60"
           >
             <div className="w-8 h-8 bg-red-500/10 rounded-lg flex items-center justify-center">
               <LogOut size={15} className="text-red-400" />
             </div>
-            <span className="flex-1 text-sm font-medium text-red-400 text-left">{t.settings.signOut}</span>
+            <span className="flex-1 text-sm font-medium text-red-400 text-left">
+              {loggingOut ? 'Abmelden…' : t.settings.signOut}
+            </span>
           </button>
         </div>
 
@@ -543,7 +579,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <BottomNav matchCount={unreadMatches} visitorCount={newVisitors} />
+      <BottomNav matchCount={0} visitorCount={0} />
     </div>
   );
 }

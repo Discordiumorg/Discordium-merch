@@ -220,7 +220,7 @@ export default function LandingPage() {
         return;
       }
       showToast(intent === 'register' ? 'Account created!' : 'Welcome back!', 'success');
-      setTimeout(() => router.push('/dashboard'), 600);
+      setTimeout(() => router.push(intent === 'register' ? '/onboarding' : '/dashboard'), 600);
     } catch {
       showToast('Network error — please try again', 'error');
     } finally {
