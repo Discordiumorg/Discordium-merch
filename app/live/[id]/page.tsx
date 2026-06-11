@@ -17,7 +17,10 @@ import LiveGiftToast, { type GiftToastItem } from '@/components/LiveGiftToast';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-interface FloatingHeart { id: number; x: number; }
+interface FloatingHeart { id: number; x: number; y: number; emoji: string; drift: number; }
+interface TapRipple     { id: number; x: number; y: number; }
+
+const HEART_EMOJIS = ['❤️','💕','💗','🧡','💛','💜','💖','💓','🩷'];
 interface FloatingGift  { id: number; emoji: string; }
 interface ModLogEntry   { id: string; type: ModActionType; detail: string; ts: Date; }
 
@@ -60,8 +63,12 @@ export default function StreamViewerPage() {
   const [chatInput, setChatInput] = useState('');
   const [floatingHearts, setFloatingHearts] = useState<FloatingHeart[]>([]);
   const [floatingGifts, setFloatingGifts] = useState<FloatingGift[]>([]);
+  const [tapRipples, setTapRipples] = useState<TapRipple[]>([]);
+  const [showTapHint, setShowTapHint] = useState(true);
   const [heartIdRef] = useState({ current: 0 });
   const [giftIdRef]  = useState({ current: 0 });
+  const [rippleIdRef] = useState({ current: 0 });
+  const tapHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── moderation state ───────────────────────────────────────────────────────
   const [isMod, setIsMod]           = useState(false);
@@ -154,18 +161,44 @@ export default function StreamViewerPage() {
     setModLog((p) => [{ id: `ml-${Date.now()}`, type, detail, ts: new Date() }, ...p.slice(0, 49)]);
   }, []);
 
-  // ── like ────────────────────────────────────────────────────────────────────
-  const handleLike = useCallback(() => {
+  // ── hide tap hint after first tap ───────────────────────────────────────────
+  useEffect(() => {
+    tapHintTimerRef.current = setTimeout(() => setShowTapHint(false), 4000);
+    return () => { if (tapHintTimerRef.current) clearTimeout(tapHintTimerRef.current); };
+  }, []);
+
+  const spawnHearts = useCallback((cx: number, cy: number, count: number) => {
     setLikeCount((c) => c + 1);
-    for (let i = 0; i < 3 + Math.floor(Math.random() * 3); i++) {
+    for (let i = 0; i < count; i++) {
       const id = ++heartIdRef.current;
-      const x  = 55 + Math.random() * 30;
+      const emoji = HEART_EMOJIS[Math.floor(Math.random() * HEART_EMOJIS.length)];
+      const drift = (Math.random() - 0.5) * 80;
       setTimeout(() => {
-        setFloatingHearts((p) => [...p, { id, x }]);
-        setTimeout(() => setFloatingHearts((p) => p.filter((h) => h.id !== id)), 1500);
-      }, i * 120);
+        setFloatingHearts((p) => [...p, { id, x: cx, y: cy, emoji, drift }]);
+        setTimeout(() => setFloatingHearts((p) => p.filter((h) => h.id !== id)), 2000);
+      }, i * 80);
     }
   }, [heartIdRef]);
+
+  // ── like button (right panel) ────────────────────────────────────────────────
+  const handleLike = useCallback(() => {
+    const cx = window.innerWidth * 0.85;
+    const cy = window.innerHeight * 0.55;
+    spawnHearts(cx, cy, 3 + Math.floor(Math.random() * 3));
+  }, [spawnHearts]);
+
+  // ── tap anywhere on video to like ───────────────────────────────────────────
+  const handleScreenTap = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const { clientX, clientY } = e;
+    if (tapHintTimerRef.current) { clearTimeout(tapHintTimerRef.current); tapHintTimerRef.current = null; }
+    setShowTapHint(false);
+    // ripple ring at tap position
+    const rid = ++rippleIdRef.current;
+    setTapRipples((p) => [...p, { id: rid, x: clientX, y: clientY }]);
+    setTimeout(() => setTapRipples((p) => p.filter((r) => r.id !== rid)), 700);
+    // spawn 1-3 hearts at tap position
+    spawnHearts(clientX, clientY, 1 + Math.floor(Math.random() * 3));
+  }, [spawnHearts, rippleIdRef]);
 
   // ── send gift ───────────────────────────────────────────────────────────────
   const sendGift = useCallback((giftId: string) => {
@@ -268,6 +301,36 @@ export default function StreamViewerPage() {
           <img src={stream.hostPhoto} alt={stream.hostName}
             className="w-full h-full object-cover rounded-2xl" style={{ boxShadow: '0 0 40px rgba(0,0,0,0.6)' }} />
         </motion.div>
+      </div>
+
+      {/* ── TAP-TO-LIKE OVERLAY ── */}
+      <div
+        className="absolute inset-0 z-20 cursor-pointer select-none"
+        onClick={handleScreenTap}
+      >
+        {/* Tap hint — fades after first tap */}
+        <AnimatePresence>
+          {showTapHint && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ delay: 0.8 }}
+              className="absolute bottom-[48%] left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }}
+                className="text-4xl"
+              >
+                ❤️
+              </motion.div>
+              <span className="text-white/60 text-xs font-semibold bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full">
+                Tippe zum Liken
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ── TOP BAR ── */}
@@ -742,14 +805,32 @@ export default function StreamViewerPage() {
         onExpire={(id) => setGiftToastItems((p) => p.filter((i) => i.id !== id))}
       />
 
+      {/* ── TAP RIPPLES ── */}
+      <AnimatePresence>
+        {tapRipples.map((r) => (
+          <motion.div key={r.id}
+            initial={{ opacity: 0.7, scale: 0.3 }}
+            animate={{ opacity: 0, scale: 2.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="absolute z-40 pointer-events-none rounded-full border-2 border-pink-400/70"
+            style={{ width: 56, height: 56, left: r.x - 28, top: r.y - 28 }}
+          />
+        ))}
+      </AnimatePresence>
+
       {/* ── FLOATING HEARTS ── */}
       <AnimatePresence>
         {floatingHearts.map((h) => (
           <motion.div key={h.id}
-            initial={{ opacity: 1, y: 0, scale: 0.5 }} animate={{ opacity: 0, y: -150, scale: 1.2 }} exit={{ opacity: 0 }}
-            transition={{ duration: 1.4, ease: 'easeOut' }}
-            className="absolute z-40 pointer-events-none text-2xl" style={{ bottom: '45%', left: `${h.x}%` }}>
-            ❤️
+            initial={{ opacity: 1, y: 0, x: 0, scale: 0.5, rotate: (Math.random() - 0.5) * 30 }}
+            animate={{ opacity: 0, y: -220, x: h.drift, scale: 1.4, rotate: (Math.random() - 0.5) * 40 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute z-40 pointer-events-none select-none text-3xl"
+            style={{ left: h.x - 16, top: h.y - 16 }}
+          >
+            {h.emoji}
           </motion.div>
         ))}
       </AnimatePresence>
