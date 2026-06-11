@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Settings, RefreshCw, Zap, Flag, Eye, Plus, Bell } from 'lucide-react';
+import { Flame, Settings, RefreshCw, Zap, Flag, Eye, Plus, Bell, SlidersHorizontal } from 'lucide-react';
 import AuraLogo from '@/components/AuraLogo';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
@@ -166,6 +166,13 @@ export default function DashboardPage() {
               3
             </span>
           </button>
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={() => router.push('/filters')}
+            className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+          >
+            <SlidersHorizontal size={18} />
+          </motion.button>
           <button
             onClick={() => router.push('/settings')}
             className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors"
