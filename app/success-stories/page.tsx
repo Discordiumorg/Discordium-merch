@@ -24,21 +24,21 @@ const STORIES: Story[] = [
     names: ['Lena', 'Markus'],
     seeds: ['lena_s', 'markus_s'],
     city: 'Berlin',
-    matchedDate: 'March 2024',
-    quote: "We matched on a rainy Tuesday. He sent the worst icebreaker I've ever heard — and somehow that made me laugh so hard I had to meet him.",
-    duration: '14 months together',
-    milestone: 'Now engaged 💍',
+    matchedDate: 'März 2024',
+    quote: "Wir haben uns an einem verregneten Dienstag gematcht. Er schickte den schlechtesten Einstieg, den ich je gehört habe – und genau das hat mich so zum Lachen gebracht, dass ich ihn einfach treffen musste.",
+    duration: '14 Monate zusammen',
+    milestone: 'Verlobt 💍',
     emoji: '💍',
   },
   {
     id: 's2',
     names: ['Sophie', 'Tim'],
     seeds: ['sophie_st', 'tim_st'],
-    city: 'Munich',
+    city: 'München',
     matchedDate: 'August 2023',
-    quote: "I almost deleted the app the day we matched. I'm so glad I didn't. He surprised me with concert tickets on our third date.",
-    duration: '22 months together',
-    milestone: 'Moving in together 🏠',
+    quote: "Ich wollte die App fast löschen, genau an dem Tag, als wir uns gematcht haben. Ich bin so froh, dass ich es nicht getan habe. Beim dritten Date hat er mich mit Konzerttickets überrascht.",
+    duration: '22 Monate zusammen',
+    milestone: 'Zusammengezogen 🏠',
     emoji: '🏠',
   },
   {
@@ -46,21 +46,21 @@ const STORIES: Story[] = [
     names: ['Anna', 'Felix'],
     seeds: ['anna_af', 'felix_af'],
     city: 'Hamburg',
-    matchedDate: 'January 2025',
-    quote: 'Our compatibility score said 92%. We thought that was just an algorithm — turns out it was right.',
-    duration: '5 months together',
-    milestone: 'First vacation together ✈️',
+    matchedDate: 'Januar 2025',
+    quote: 'Unser Kompatibilitätswert lag bei 92 %. Wir dachten, das sei nur ein Algorithmus – aber er hatte recht.',
+    duration: '5 Monate zusammen',
+    milestone: 'Erster Urlaub zusammen ✈️',
     emoji: '✈️',
   },
   {
     id: 's4',
     names: ['Mia', 'Leon'],
     seeds: ['mia_ml', 'leon_ml'],
-    city: 'Cologne',
+    city: 'Köln',
     matchedDate: 'November 2023',
-    quote: 'He sent me a Crystal Rose as his first message. I thought it was over the top — now I think it was romantic.',
-    duration: '19 months together',
-    milestone: 'Got a dog together 🐶',
+    quote: 'Er hat mir als erste Nachricht eine Kristallrose geschickt. Ich fand das übertrieben – heute finde ich es romantisch.',
+    duration: '19 Monate zusammen',
+    milestone: 'Hund adoptiert 🐶',
     emoji: '🐶',
   },
   {
@@ -68,18 +68,18 @@ const STORIES: Story[] = [
     names: ['Julia', 'Kai'],
     seeds: ['julia_jk', 'kai_jk'],
     city: 'Frankfurt',
-    matchedDate: 'June 2024',
-    quote: 'We video-dated three times before meeting in person. Those 2 minutes per round felt like hours with him.',
-    duration: '12 months together',
-    milestone: 'Celebrating one year 🎉',
+    matchedDate: 'Juni 2024',
+    quote: 'Wir haben dreimal per Video-Chat gedatet, bevor wir uns persönlich getroffen haben. Diese 2 Minuten pro Runde fühlten sich mit ihm wie Stunden an.',
+    duration: '12 Monate zusammen',
+    milestone: 'Ein Jahr gefeiert 🎉',
     emoji: '🎉',
   },
 ];
 
 const STATS = [
-  { label: 'Matches Made', value: '2.4M+', emoji: '💞' },
-  { label: 'Couples Formed', value: '180K+', emoji: '👫' },
-  { label: 'Engagements', value: '12K+', emoji: '💍' },
+  { label: 'Neue Matches', value: '2,4M+', emoji: '💞' },
+  { label: 'Paare geformt', value: '180K+', emoji: '👫' },
+  { label: 'Verlobungen', value: '12K+', emoji: '💍' },
 ];
 
 export default function SuccessStoriesPage() {
@@ -101,14 +101,14 @@ export default function SuccessStoriesPage() {
         </button>
         <div className="flex items-center gap-2 flex-1">
           <Heart size={20} className="text-pink-400" fill="currentColor" />
-          <h1 className="text-white font-black text-xl">Success Stories</h1>
+          <h1 className="text-white font-black text-xl">Liebesgeschichten</h1>
         </div>
         <button
           onClick={() => setShowShare(true)}
           className="flex items-center gap-1.5 gradient-brand text-white text-xs font-bold px-3 py-2 rounded-xl"
         >
           <Plus size={14} />
-          Share Yours
+          Geschichte teilen
         </button>
       </div>
 
@@ -127,9 +127,9 @@ export default function SuccessStoriesPage() {
         {/* Quote */}
         <div className="gradient-brand rounded-3xl p-5 mb-8">
           <p className="text-white font-bold text-lg leading-snug mb-2">
-            "Love isn't found. It's felt."
+            „Liebe wird nicht gefunden. Sie wird gefühlt."
           </p>
-          <p className="text-white/70 text-xs">— The Aura Team</p>
+          <p className="text-white/70 text-xs">— Das Aura-Team</p>
         </div>
 
         {/* Stories list */}
@@ -173,13 +173,13 @@ export default function SuccessStoriesPage() {
                     <h3 className="text-white font-black text-base">
                       {story.names[0]} & {story.names[1]}
                     </h3>
-                    <p className="text-white/40 text-xs">{story.city} · Matched {story.matchedDate}</p>
+                    <p className="text-white/40 text-xs">{story.city} · Gematcht {story.matchedDate}</p>
                   </div>
                   <span className="text-white/40 text-xs bg-white/5 px-2.5 py-1 rounded-full">{story.duration}</span>
                 </div>
 
                 <p className="text-white/70 text-sm leading-relaxed mb-4 line-clamp-3 italic">
-                  "{story.quote}"
+                  „{story.quote}"
                 </p>
 
                 <div className="flex gap-3">
@@ -192,14 +192,14 @@ export default function SuccessStoriesPage() {
                     }`}
                   >
                     <Heart size={14} fill={likedIds.includes(story.id) ? 'currentColor' : 'none'} />
-                    {likedIds.includes(story.id) ? 'Loved' : 'Love this'}
+                    {likedIds.includes(story.id) ? 'Gefällt mir' : 'Gefällt mir'}
                   </button>
                   <button
                     onClick={() => setSelectedStory(story)}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold card-glass text-white/50"
                   >
                     <ChevronRight size={14} />
-                    Read more
+                    Mehr lesen
                   </button>
                 </div>
               </div>
@@ -234,16 +234,16 @@ export default function SuccessStoriesPage() {
                   <img src={`https://picsum.photos/seed/${selectedStory.seeds[0]}/200/200`} className="w-16 h-16 rounded-2xl object-cover" alt="" />
                   <img src={`https://picsum.photos/seed/${selectedStory.seeds[1]}/200/200`} className="w-16 h-16 rounded-2xl object-cover" alt="" />
                 </div>
-                <p className="text-white/70 text-sm leading-relaxed italic mb-6">"{selectedStory.quote}"</p>
+                <p className="text-white/70 text-sm leading-relaxed italic mb-6">„{selectedStory.quote}"</p>
                 <div className="card-gradient-border p-4 rounded-2xl mb-5">
                   <p className="text-purple-300 text-xs font-semibold mb-1">{selectedStory.milestone}</p>
-                  <p className="text-white/50 text-xs">Matched {selectedStory.matchedDate} on Aura</p>
+                  <p className="text-white/50 text-xs">Gematcht {selectedStory.matchedDate} auf Aura</p>
                 </div>
                 <button
                   onClick={() => setSelectedStory(null)}
                   className="w-full py-3.5 rounded-2xl gradient-brand text-white font-bold"
                 >
-                  Back to Stories
+                  Zurück zu den Geschichten
                 </button>
               </div>
             </motion.div>
@@ -267,21 +267,21 @@ export default function SuccessStoriesPage() {
               <div className="p-5 pb-10">
                 <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-black text-lg">Share Your Story</h3>
+                  <h3 className="text-white font-black text-lg">Geschichte einreichen</h3>
                   <button onClick={() => setShowShare(false)}><X size={20} className="text-white/40" /></button>
                 </div>
                 <textarea
                   rows={4}
-                  placeholder="Tell us how you met and what makes your story special..."
+                  placeholder="Erzähl uns, wie ihr euch kennengelernt habt und was eure Geschichte besonders macht..."
                   className="w-full bg-white/5 border border-white/15 rounded-2xl px-4 py-3 text-white placeholder:text-white/25 text-sm focus:outline-none mb-4 resize-none"
                 />
-                <input placeholder="Your partner's name" className="w-full bg-white/5 border border-white/15 rounded-2xl px-4 py-3 text-white placeholder:text-white/25 text-sm focus:outline-none mb-3" />
+                <input placeholder="Name deines Partners / deiner Partnerin" className="w-full bg-white/5 border border-white/15 rounded-2xl px-4 py-3 text-white placeholder:text-white/25 text-sm focus:outline-none mb-3" />
                 <button
                   onClick={() => setShowShare(false)}
                   className="w-full py-3.5 rounded-2xl gradient-brand text-white font-bold flex items-center justify-center gap-2"
                 >
                   <Share2 size={18} />
-                  Submit Story
+                  Geschichte absenden
                 </button>
               </div>
             </motion.div>
