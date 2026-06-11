@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { I18nProvider } from '@/lib/i18n';
+import { AuthProvider } from '@/components/AuthProvider';
 
 export const metadata: Metadata = {
   title: 'Aura — Feel the Connection',
@@ -34,9 +35,11 @@ export default function RootLayout({
       </head>
       <body className="bg-brand-dark min-h-screen antialiased">
         <I18nProvider>
-          <div className="max-w-md mx-auto min-h-screen relative overflow-hidden">
-            {children}
-          </div>
+          <AuthProvider>
+            <div className="max-w-md mx-auto min-h-screen relative overflow-hidden">
+              {children}
+            </div>
+          </AuthProvider>
         </I18nProvider>
       </body>
     </html>
