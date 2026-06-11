@@ -21,3 +21,12 @@ yarn-error.log*
 tsconfig.tsbuildinfo
 
 /lib/generated/prisma
+
+# SQLite database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Claude session data
+.claude/
