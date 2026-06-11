@@ -25,6 +25,7 @@ import {
   User,
   Mail,
   Lock,
+  UserX,
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { useI18n, languageLabels, Language } from '@/lib/i18n';
@@ -337,6 +338,14 @@ export default function SettingsPage() {
                 <ToggleSwitch on={emailNotif} onChange={() => setEmailNotif(!emailNotif)} />
               </div>
             </div>
+            <button
+              onClick={() => router.push('/settings/notifications')}
+              className="w-full flex items-center gap-2 pt-3 border-t border-white/10 text-purple-400 text-sm font-medium hover:opacity-80 transition-opacity"
+            >
+              <Bell size={14} />
+              <span className="flex-1 text-left">Detaillierte Benachrichtigungseinstellungen</span>
+              <ChevronRight size={14} className="text-white/30" />
+            </button>
           </div>
         </div>
 
@@ -364,6 +373,14 @@ export default function SettingsPage() {
               >
                 <Lock size={16} className="text-purple-400" />
                 <span className="text-white/70 text-sm flex-1">Sicherheit &amp; Datenschutz</span>
+                <ChevronRight size={14} className="text-white/30" />
+              </button>
+              <button
+                onClick={() => router.push('/blocked')}
+                className="w-full flex items-center gap-3 py-2.5 text-left hover:opacity-80 transition-opacity"
+              >
+                <UserX size={16} className="text-red-400/70" />
+                <span className="text-white/70 text-sm flex-1">Blockierte Nutzer</span>
                 <ChevronRight size={14} className="text-white/30" />
               </button>
               <button className="w-full flex items-center gap-3 py-2.5 text-left hover:opacity-80 transition-opacity">
@@ -513,12 +530,13 @@ export default function SettingsPage() {
         <div className="card-glass rounded-2xl overflow-hidden">
           <SectionTitle title={t.settings.support} />
           {[
-            { label: 'FAQ', icon: HelpCircle },
-            { label: 'Kontakt', icon: MessageSquare },
-            { label: 'App bewerten', icon: Star },
+            { label: 'Hilfe & FAQ', icon: HelpCircle, path: '/help' },
+            { label: 'Kontakt', icon: MessageSquare, path: null },
+            { label: 'App bewerten', icon: Star, path: null },
           ].map((item, i) => (
             <button
               key={i}
+              onClick={() => item.path && router.push(item.path)}
               className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-colors ${
                 i < 2 ? 'border-b border-white/5' : ''
               }`}
