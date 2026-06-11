@@ -531,9 +531,16 @@ export default function ProfilePage() {
 
               {/* Extra Links */}
               {[
-                { emoji: '🧠', label: 'My Personality Type', path: '/quiz', color: 'text-purple-400' },
-                { emoji: '🛡️', label: 'Safe Date', path: '/safe-date', color: 'text-blue-400' },
-                { emoji: '❤️', label: 'Success Stories', path: '/success-stories', color: 'text-red-400' },
+                { emoji: '🧠', label: 'Persönlichkeitsprofil', path: '/personality', color: 'text-purple-400' },
+                { emoji: '📊', label: 'Meine Statistiken', path: '/profile/stats', color: 'text-blue-400' },
+                { emoji: '📖', label: 'Mein Tagebuch', path: '/journal', color: 'text-pink-400' },
+                { emoji: '💡', label: 'Date-Ideen', path: '/date-ideas', color: 'text-yellow-400' },
+                { emoji: '🤖', label: 'Dating Coach', path: '/coach', color: 'text-green-400' },
+                { emoji: '⚡', label: 'Profil boosten', path: '/boost', color: 'text-yellow-400' },
+                { emoji: '⭐', label: 'Super-Likes', path: '/superlikes', color: 'text-blue-400' },
+                { emoji: '🔐', label: 'Sicherheit', path: '/security', color: 'text-green-400' },
+                { emoji: '🛡️', label: 'Sicheres Date', path: '/safe-date', color: 'text-blue-400' },
+                { emoji: '❤️', label: 'Erfolgsgeschichten', path: '/success-stories', color: 'text-red-400' },
               ].map((link) => (
                 <motion.button
                   key={link.path}
