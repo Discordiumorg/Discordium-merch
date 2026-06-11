@@ -1,68 +1,256 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Check,
-  X,
-  Crown,
-  Zap,
-  ArrowLeft,
-  Sparkles,
-  Shield,
-  Eye,
-  MessageCircle,
-  Heart,
-} from 'lucide-react';
+import { ArrowLeft, Zap, Eye, RotateCcw, Brain, ChevronDown, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { plans, type PlanId } from '@/lib/shopData';
 import BottomNav from '@/components/BottomNav';
 
-const perks = [
-  { icon: Heart, label: 'Unlimited Likes', desc: 'Like as many profiles as you want' },
-  { icon: Eye, label: 'See Who Liked You', desc: 'No more guessing — see your admirers' },
-  { icon: Zap, label: 'Profile Boosts', desc: 'Appear at the top for 30 minutes' },
-  { icon: MessageCircle, label: 'Read Receipts', desc: 'Know when your messages are read' },
-  { icon: Shield, label: 'Incognito Mode', desc: 'Browse privately — only in Platinum' },
-  { icon: Sparkles, label: 'Priority Matching', desc: 'Get matched with top profiles first' },
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type BillingCycle = 'monthly' | 'yearly';
+
+interface Feature {
+  label: string;
+  included: boolean;
+}
+
+interface Plan {
+  id: 'basic' | 'gold' | 'platinum';
+  name: string;
+  emoji: string;
+  badge?: string;
+  monthlyPrice: number | null;
+  yearlyPrice: number | null;
+  gradient: string;
+  borderClass: string;
+  glowClass: string;
+  features: Feature[];
+}
+
+interface Testimonial {
+  name: string;
+  age: number;
+  quote: string;
+  rating: number;
+  gradientFrom: string;
+  gradientTo: string;
+}
+
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
+const plans: Plan[] = [
+  {
+    id: 'basic',
+    name: 'Basic',
+    emoji: '🆓',
+    monthlyPrice: null,
+    yearlyPrice: null,
+    gradient: 'from-gray-700 to-gray-600',
+    borderClass: 'border-white/20',
+    glowClass: '',
+    features: [
+      { label: '10 Swipes/Tag', included: true },
+      { label: '1 SuperLike/Woche', included: true },
+      { label: 'Basis-Matching', included: true },
+      { label: 'Unlimitierte Swipes', included: false },
+      { label: 'Sehen wer dich liked', included: false },
+      { label: 'Rewind', included: false },
+      { label: 'Boost', included: false },
+      { label: 'Keine Werbung', included: false },
+    ],
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    emoji: '✨',
+    badge: 'Beliebt',
+    monthlyPrice: 9.99,
+    yearlyPrice: 7.99,
+    gradient: 'from-purple-700 to-pink-600',
+    borderClass: 'border-purple-500/60',
+    glowClass: 'glow-purple',
+    features: [
+      { label: 'Unlimitierte Swipes', included: true },
+      { label: '5 SuperLikes/Tag', included: true },
+      { label: 'Sehen wer dich liked', included: true },
+      { label: 'Rewind', included: true },
+      { label: 'Boost 1x/Woche', included: true },
+      { label: 'Keine Werbung', included: true },
+      { label: 'KI-Dating-Coach', included: false },
+      { label: 'Exklusive Badges', included: false },
+    ],
+  },
+  {
+    id: 'platinum',
+    name: 'Platinum',
+    emoji: '💎',
+    monthlyPrice: 19.99,
+    yearlyPrice: 13.99,
+    gradient: 'from-yellow-600 to-amber-500',
+    borderClass: 'border-yellow-500/60',
+    glowClass: '',
+    features: [
+      { label: 'Alles aus Gold', included: true },
+      { label: 'Priorität im Matching', included: true },
+      { label: 'KI-Dating-Coach', included: true },
+      { label: 'Profil-Hervorhebung', included: true },
+      { label: 'Unlimitierte Boosts', included: true },
+      { label: 'Exklusive Badges', included: true },
+      { label: 'Speed Dating VIP', included: true },
+      { label: 'Premium Support', included: true },
+    ],
+  },
 ];
+
+const testimonials: Testimonial[] = [
+  {
+    name: 'Sara',
+    age: 28,
+    quote: 'Innerhalb einer Woche hatte ich 3 echte Dates!',
+    rating: 5,
+    gradientFrom: 'from-purple-500',
+    gradientTo: 'to-pink-500',
+  },
+  {
+    name: 'Max',
+    age: 31,
+    quote: 'Gold hat mein Dating-Leben komplett verändert.',
+    rating: 5,
+    gradientFrom: 'from-blue-500',
+    gradientTo: 'to-violet-500',
+  },
+  {
+    name: 'Jana',
+    age: 25,
+    quote: 'Der KI-Coach ist unglaublich hilfreich!',
+    rating: 5,
+    gradientFrom: 'from-rose-500',
+    gradientTo: 'to-orange-400',
+  },
+];
+
+const featureHighlights = [
+  {
+    icon: Zap,
+    title: 'Profilboost',
+    description: 'Werde für 30 Minuten ganz oben in den Ergebnissen angezeigt.',
+    color: 'text-yellow-400',
+    bg: 'bg-yellow-400/10',
+  },
+  {
+    icon: Eye,
+    title: 'Wer mag dich',
+    description: 'Sieh genau, wer dein Profil geliked hat – keine Rätsel mehr.',
+    color: 'text-blue-400',
+    bg: 'bg-blue-400/10',
+  },
+  {
+    icon: RotateCcw,
+    title: 'Rewind',
+    description: 'Versehentlich geswipt? Mach den letzten Swipe rückgängig.',
+    color: 'text-green-400',
+    bg: 'bg-green-400/10',
+  },
+  {
+    icon: Brain,
+    title: 'KI-Dating-Coach',
+    description: 'Personalisierte Tipps für bessere Gesprächseinstiege & Dates.',
+    color: 'text-purple-400',
+    bg: 'bg-purple-400/10',
+  },
+];
+
+const faqItems: FaqItem[] = [
+  {
+    question: 'Wann wird abgerechnet?',
+    answer: 'Bei monatlicher Abrechnung wird am selben Tag jeden Monat abgebucht. Bei jährlicher Abrechnung einmal im Jahr zum günstigeren Preis.',
+  },
+  {
+    question: 'Kann ich kündigen?',
+    answer: 'Ja, jederzeit und ohne Angabe von Gründen. Du behältst alle Premium-Vorteile bis zum Ende des bezahlten Zeitraums.',
+  },
+  {
+    question: 'Was ist ein Boost?',
+    answer: 'Ein Boost hebt dein Profil für 30 Minuten ganz oben in der Entdecken-Liste an – so siehst du bis zu 10x mehr potenzielle Matches.',
+  },
+  {
+    question: 'Ist meine Zahlung sicher?',
+    answer: 'Ja, alle Zahlungen laufen über verschlüsselte, PCI-DSS-konforme Systeme. Wir speichern keine Kartendaten direkt auf unseren Servern.',
+  },
+  {
+    question: 'Was passiert nach Ablauf?',
+    answer: 'Dein Konto wechselt automatisch zurück in den Basic-Tarif. Alle gespeicherten Matches und Nachrichten bleiben erhalten.',
+  },
+];
+
+// ─── Subcomponents ────────────────────────────────────────────────────────────
+
+function FaqAccordionItem({ item, index }: { item: FaqItem; index: number }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.07 }}
+      className="card-glass rounded-2xl overflow-hidden"
+    >
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full flex items-center justify-between p-4 text-left"
+      >
+        <span className="text-white font-semibold text-sm pr-4">{item.question}</span>
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25 }}>
+          <ChevronDown size={18} className="text-white/50 flex-shrink-0" />
+        </motion.div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <p className="px-4 pb-4 text-white/60 text-sm leading-relaxed">{item.answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function PremiumPage() {
   const router = useRouter();
-  const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
-  const [selected, setSelected] = useState<PlanId>('premium');
-  const [purchased, setPurchased] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [billing, setBilling] = useState<BillingCycle>('yearly');
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
 
-  const selectedPlan = plans.find((p) => p.id === selected)!;
-  const price = billing === 'yearly' ? selectedPlan.yearlyPrice : selectedPlan.monthlyPrice;
-
-  const handleSubscribe = async () => {
-    if (selected === 'free' || loading) return;
-    const itemId = `${selected}-${billing === 'yearly' ? 'yearly' : 'monthly'}`;
-    setLoading(true);
-    setErrMsg(null);
-    try {
-      const res = await fetch('/api/shop/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId, paymentMethod: 'demo' }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setErrMsg(data.error ?? 'Purchase failed'); return; }
-      setPurchased(true);
-      setTimeout(() => router.push('/profile'), 2000);
-    } catch {
-      setErrMsg('Network error — please try again');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      if (heroRef.current) {
+        const bottom = heroRef.current.getBoundingClientRect().bottom;
+        setShowStickyCta(bottom < 0);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-brand-dark overflow-x-hidden pb-safe">
-      {/* Header */}
+
+      {/* ── Header ─────────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-4 flex items-center gap-4">
         <button
           onClick={() => router.back()}
@@ -71,248 +259,301 @@ export default function PremiumPage() {
           <ArrowLeft size={18} className="text-white" />
         </button>
         <div className="flex items-center gap-2">
-          <Crown size={20} className="text-yellow-400" />
-          <h1 className="text-white font-black text-xl">Go Premium</h1>
+          <span className="text-xl">💎</span>
+          <h1 className="text-white font-black text-xl">Premium</h1>
         </div>
       </div>
 
-      <div className="px-5 pb-32">
-        {/* Hero */}
+      {/* ── Hero ───────────────────────────────────────────────── */}
+      <div ref={heroRef} className="relative px-5 pt-8 pb-10 text-center overflow-hidden">
+        {/* Animated gradient orbs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-6 mb-8 text-center"
+          animate={{ x: [0, 30, 0], y: [0, -20, 0], opacity: [0.4, 0.7, 0.4] }}
+          transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut' }}
+          className="absolute -top-10 -left-10 w-60 h-60 rounded-full bg-purple-600/30 blur-3xl pointer-events-none"
+        />
+        <motion.div
+          animate={{ x: [0, -25, 0], y: [0, 15, 0], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 1.5 }}
+          className="absolute -top-5 -right-16 w-56 h-56 rounded-full bg-pink-600/25 blur-3xl pointer-events-none"
+        />
+        <motion.div
+          animate={{ x: [0, 15, 0], y: [0, -10, 0], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-32 rounded-full bg-violet-700/20 blur-3xl pointer-events-none"
+        />
+
+        {/* Diamond emoji */}
+        <motion.div
+          animate={{ y: [0, -8, 0], scale: [1, 1.05, 1] }}
+          transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+          className="text-6xl mb-5 relative z-10"
         >
-          <motion.div
-            animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Infinity, duration: 4, repeatDelay: 2 }}
-            className="text-6xl mb-4"
-          >
-            👑
-          </motion.div>
-          <h2 className="text-white font-black text-2xl mb-2">
-            Unlock Your Full Potential
-          </h2>
-          <p className="text-white/50 text-sm leading-relaxed max-w-xs mx-auto">
-            Get more matches, more visibility, and more connections with Premium features.
-          </p>
+          💎
         </motion.div>
 
-        {/* Perks strip */}
-        <div className="flex gap-3 overflow-x-auto pb-2 mb-8 no-scrollbar">
-          {perks.map((perk, i) => (
-            <motion.div
-              key={perk.label}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.06 }}
-              className="flex-shrink-0 card-glass rounded-2xl p-4 w-32 text-center"
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-white font-black text-2xl leading-tight mb-3 relative z-10"
+        >
+          Entfessle deine<br />vollen Möglichkeiten
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-white/55 text-sm leading-relaxed max-w-xs mx-auto relative z-10"
+        >
+          Bessere Matches, mehr Sichtbarkeit und exklusive Features – alles mit einem Abo.
+        </motion.p>
+      </div>
+
+      <div className="px-5 pb-32">
+
+        {/* ── Billing Toggle ─────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex items-center justify-center mb-8"
+        >
+          <div className="card-glass rounded-2xl p-1.5 flex gap-1 relative">
+            <motion.button
+              onClick={() => setBilling('monthly')}
+              className={`relative px-6 py-2 rounded-xl text-sm font-bold transition-colors ${
+                billing === 'monthly' ? 'text-white' : 'text-white/45'
+              }`}
             >
-              <perk.icon size={22} className="text-purple-400 mx-auto mb-2" />
-              <p className="text-white text-xs font-semibold leading-tight">{perk.label}</p>
-            </motion.div>
-          ))}
-        </div>
+              {billing === 'monthly' && (
+                <motion.div
+                  layoutId="billingPill"
+                  className="absolute inset-0 gradient-brand rounded-xl glow-button"
+                />
+              )}
+              <span className="relative z-10">Monatlich</span>
+            </motion.button>
+            <motion.button
+              onClick={() => setBilling('yearly')}
+              className={`relative px-6 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
+                billing === 'yearly' ? 'text-white' : 'text-white/45'
+              }`}
+            >
+              {billing === 'yearly' && (
+                <motion.div
+                  layoutId="billingPill"
+                  className="absolute inset-0 gradient-brand rounded-xl glow-button"
+                />
+              )}
+              <span className="relative z-10">Jährlich</span>
+              <span className="relative z-10 bg-green-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                -33%
+              </span>
+            </motion.button>
+          </div>
+        </motion.div>
 
-        {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <button
-            onClick={() => setBilling('monthly')}
-            className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
-              billing === 'monthly'
-                ? 'gradient-brand text-white shadow-lg'
-                : 'text-white/50 card-glass'
-            }`}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setBilling('yearly')}
-            className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all relative ${
-              billing === 'yearly'
-                ? 'gradient-brand text-white shadow-lg'
-                : 'text-white/50 card-glass'
-            }`}
-          >
-            Yearly
-            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-              -40%
-            </span>
-          </button>
-        </div>
-
-        {/* Plans */}
-        <div className="space-y-4 mb-8">
+        {/* ── Plan Cards ─────────────────────────────────────────── */}
+        <div className="flex gap-4 overflow-x-auto pb-4 mb-10 no-scrollbar -mx-5 px-5">
           {plans.map((plan, i) => {
-            const isSelected = selected === plan.id;
-            const displayPrice = billing === 'yearly' ? plan.yearlyPrice : plan.monthlyPrice;
+            const price =
+              plan.monthlyPrice === null
+                ? null
+                : billing === 'yearly'
+                ? plan.yearlyPrice
+                : plan.monthlyPrice;
+
+            const isGold = plan.id === 'gold';
+            const isPlatinum = plan.id === 'platinum';
 
             return (
-              <motion.button
+              <motion.div
                 key={plan.id}
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                onClick={() => setSelected(plan.id)}
-                className={`w-full text-left rounded-2xl overflow-hidden border-2 transition-all ${
-                  isSelected ? 'border-purple-500' : 'border-white/10'
-                }`}
+                transition={{ delay: 0.1 + i * 0.1 }}
+                className={`flex-shrink-0 w-64 rounded-2xl border-2 overflow-hidden relative ${plan.borderClass} ${isGold ? plan.glowClass : ''}`}
+                style={
+                  isPlatinum
+                    ? { boxShadow: '0 0 24px rgba(234,179,8,0.35), 0 0 60px rgba(234,179,8,0.12)' }
+                    : undefined
+                }
               >
-                {/* Plan header */}
-                <div className={`bg-gradient-to-r ${plan.gradient} p-4 relative`}>
-                  {plan.badge && (
-                    <span className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                      {plan.badge}
-                    </span>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
-                      {plan.emoji}
-                    </div>
-                    <div>
-                      <p className="text-white font-black text-lg">{plan.name}</p>
-                      <p className="text-white/80 text-sm">
-                        {plan.id === 'free' ? (
-                          'Always free'
-                        ) : (
-                          <>
-                            <span className="font-bold">€{displayPrice.toFixed(2)}</span>
-                            <span className="text-white/60"> / month</span>
-                            {billing === 'yearly' && (
-                              <span className="text-white/60 text-xs ml-1">
-                                (billed yearly)
-                              </span>
-                            )}
-                          </>
-                        )}
-                      </p>
-                    </div>
-                    <div className="ml-auto">
-                      <div
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                          isSelected
-                            ? 'bg-white border-white'
-                            : 'border-white/40'
-                        }`}
-                      >
-                        {isSelected && <Check size={14} className="text-purple-600" strokeWidth={3} />}
-                      </div>
-                    </div>
+                {/* Badge */}
+                {plan.badge && (
+                  <div className="absolute top-3 right-3 z-10 gradient-brand text-white text-[10px] font-black px-2.5 py-1 rounded-full glow-button">
+                    {plan.badge}
                   </div>
+                )}
+
+                {/* Card header */}
+                <div className={`bg-gradient-to-br ${plan.gradient} px-4 pt-5 pb-4`}>
+                  <div className="text-3xl mb-2">{plan.emoji}</div>
+                  <p className="text-white font-black text-xl">{plan.name}</p>
+                  <p className="text-white/80 text-sm mt-0.5">
+                    {price === null ? (
+                      <span className="font-bold">Kostenlos</span>
+                    ) : (
+                      <>
+                        <span className="font-black text-white text-lg">€{price!.toFixed(2)}</span>
+                        <span className="text-white/65 text-xs"> /Monat</span>
+                        {billing === 'yearly' && (
+                          <span className="text-white/55 text-xs"> (jährlich)</span>
+                        )}
+                      </>
+                    )}
+                  </p>
                 </div>
 
                 {/* Features */}
-                <div className="bg-brand-card p-4 grid grid-cols-2 gap-x-4 gap-y-2">
-                  {plan.features.slice(0, 8).map((feat) => (
-                    <div key={feat.label} className="flex items-center gap-2">
+                <div className="bg-brand-card p-4 space-y-2.5">
+                  {plan.features.map((feat) => (
+                    <div key={feat.label} className="flex items-center gap-2.5">
                       {feat.included ? (
-                        <Check
-                          size={13}
-                          className={feat.highlight ? 'text-purple-400 flex-shrink-0' : 'text-green-400 flex-shrink-0'}
-                          strokeWidth={2.5}
-                        />
+                        <span className="text-green-400 text-sm font-bold flex-shrink-0">✓</span>
                       ) : (
-                        <X size={13} className="text-white/20 flex-shrink-0" />
+                        <span className="text-white/25 text-sm font-bold flex-shrink-0">✗</span>
                       )}
                       <span
-                        className={`text-xs ${
-                          feat.included
-                            ? feat.highlight
-                              ? 'text-purple-300 font-semibold'
-                              : 'text-white/80'
-                            : 'text-white/25 line-through'
+                        className={`text-xs leading-snug ${
+                          feat.included ? 'text-white/85' : 'text-white/25 line-through'
                         }`}
                       >
                         {feat.label}
                       </span>
                     </div>
                   ))}
+
+                  {/* CTA Button */}
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    whileHover={{ opacity: 0.9 }}
+                    className={`w-full mt-3 py-2.5 rounded-xl text-sm font-black transition-all ${
+                      plan.monthlyPrice === null
+                        ? 'bg-white/10 text-white/40 cursor-default'
+                        : 'gradient-brand text-white glow-button'
+                    }`}
+                    disabled={plan.monthlyPrice === null}
+                  >
+                    {plan.monthlyPrice === null ? 'Aktuell' : 'Wählen'}
+                  </motion.button>
                 </div>
-              </motion.button>
+              </motion.div>
             );
           })}
         </div>
 
-        {/* CTA */}
+        {/* ── Testimonials ───────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-center"
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-10"
         >
-          <p className="text-white/30 text-xs mb-4">
-            Cancel anytime · Secure payment · No hidden fees
-          </p>
-          {errMsg && (
-            <p className="text-red-400 text-xs mb-3 flex items-center justify-center gap-1">
-              <X size={12} /> {errMsg}
-            </p>
-          )}
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={handleSubscribe}
-            disabled={selected === 'free' || loading}
-            className={`w-full py-4 rounded-2xl font-black text-lg shadow-2xl transition-all ${
-              selected === 'free'
-                ? 'bg-white/10 text-white/30 cursor-not-allowed'
-                : 'gradient-brand text-white hover:opacity-90 disabled:opacity-60'
-            }`}
-          >
-            {loading
-              ? '⏳ Processing…'
-              : selected === 'free'
-              ? 'Current Plan'
-              : `Subscribe to ${selectedPlan.name} ${selectedPlan.emoji}`}
-          </motion.button>
-          {selected !== 'free' && (
-            <p className="text-white/30 text-xs mt-3">
-              €{price.toFixed(2)}/month
-              {billing === 'yearly' ? ', billed as €' + (price * 12).toFixed(2) + '/year' : ''}
-            </p>
-          )}
+          <h3 className="text-white font-black text-lg mb-4">Was unsere Nutzer sagen</h3>
+          <div className="flex gap-4 overflow-x-auto pb-3 no-scrollbar -mx-5 px-5">
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex-shrink-0 w-56 card-glass rounded-2xl p-4"
+              >
+                {/* Avatar */}
+                <div
+                  className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.gradientFrom} ${t.gradientTo} flex items-center justify-center text-white font-black text-sm mb-3`}
+                >
+                  {t.name[0]}
+                </div>
+                {/* Stars */}
+                <div className="flex gap-0.5 mb-2">
+                  {Array.from({ length: t.rating }).map((_, s) => (
+                    <Star key={s} size={12} className="text-yellow-400 fill-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-white/80 text-xs leading-relaxed mb-3 italic">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <p className="text-white/50 text-xs font-semibold">
+                  {t.name}, {t.age}
+                </p>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
+
+        {/* ── Feature Highlights ─────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-10"
+        >
+          <h3 className="text-white font-black text-lg mb-4">Was Premium freischaltet</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {featureHighlights.map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="card-glass rounded-2xl p-4"
+              >
+                <div className={`w-9 h-9 ${f.bg} rounded-xl flex items-center justify-center mb-3`}>
+                  <f.icon size={18} className={f.color} />
+                </div>
+                <p className="text-white font-bold text-sm mb-1">{f.title}</p>
+                <p className="text-white/50 text-xs leading-snug">{f.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* ── FAQ Accordion ──────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-10"
+        >
+          <h3 className="text-white font-black text-lg mb-4">Häufige Fragen</h3>
+          <div className="space-y-2">
+            {faqItems.map((item, i) => (
+              <FaqAccordionItem key={item.question} item={item} index={i} />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* ── Fine print ─────────────────────────────────────────── */}
+        <p className="text-white/25 text-xs text-center leading-relaxed">
+          Jederzeit kündbar · Sichere Zahlung · Keine versteckten Kosten
+        </p>
       </div>
 
-      {/* Success overlay */}
+      {/* ── Sticky Bottom CTA ──────────────────────────────────────── */}
       <AnimatePresence>
-        {purchased && (
+        {showStickyCta && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-brand-dark/90 backdrop-blur-xl"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+            className="fixed bottom-24 left-0 right-0 z-40 flex justify-center px-6 pointer-events-none"
           >
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-center px-8"
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              className="gradient-brand text-white font-bold py-3 px-8 rounded-2xl glow-button text-sm pointer-events-auto shadow-2xl"
             >
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: 2, duration: 0.4 }}
-                className="text-7xl mb-6"
-              >
-                🎉
-              </motion.div>
-              <h2 className="text-white font-black text-3xl mb-2">Welcome to {selectedPlan.name}!</h2>
-              <p className="text-white/60 text-base">Your premium features are now active</p>
-              <div className="mt-6 flex justify-center gap-2">
-                {[...Array(5)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="text-2xl"
-                  >
-                    ⭐
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+              Gold testen – 7 Tage kostenlos
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
+
       <BottomNav />
     </div>
   );
