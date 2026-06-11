@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  passwordHash  String?
+  phone         String?  @unique
+  age           Int?
+  gender        String?
+  bio           String?
+  location      String?
+  photoUrl      String?
+  verified      Boolean  @default(false)
+  premium       Boolean  @default(false)
+  premiumTier   String?
+  premiumUntil  DateTime?
+  isAdmin       Boolean  @default(false)
+  isMod         Boolean  @default(false)
+
+  coins         Int      @default(150)
+  diamonds      Int      @default(5)
+  boosts        Int      @default(1)
+  superLikes    Int      @default(5)
+  roses         Int      @default(0)
+
+  transactions  Transaction[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String
+  itemId        String?
+  itemName      String
+  amount        Float
+  currency      String   @default("EUR")
+  coinsChange   Int?
+  diamondsChange Int?
+  boostsChange  Int?
+  superLikesChange Int?
+  rosesChange   Int?
+  status        String   @default("completed")
+  paymentMethod String?
+  note          String?
+  createdAt     DateTime @default(now())
+}
