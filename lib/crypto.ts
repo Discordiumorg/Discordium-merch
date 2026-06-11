@@ -27,7 +27,8 @@ export async function exportPublicKey(key: CryptoKey): Promise<string> {
 }
 
 export async function importPublicKey(b64: string): Promise<CryptoKey> {
-  return crypto.subtle.importKey('raw', b64ToU8(b64), ECDH, true, []);
+  const bytes = b64ToU8(b64);
+  return crypto.subtle.importKey('raw', bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer, ECDH, true, []);
 }
 
 /** Export the private key as a JWK string — only used for local backup. */
@@ -70,7 +71,13 @@ export async function importPrivateKeyEncrypted(
 ): Promise<CryptoKey> {
   const { salt, iv, ct } = JSON.parse(blob) as { v: number; salt: string; iv: string; ct: string };
   const wrapKey = await deriveWrapKey(passphrase, b64ToU8(salt));
-  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToU8(iv) }, wrapKey, b64ToU8(ct));
+  const ctBytes = b64ToU8(ct);
+  const ivBytes = b64ToU8(iv);
+  const plain = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: ivBytes.buffer.slice(ivBytes.byteOffset, ivBytes.byteOffset + ivBytes.byteLength) as ArrayBuffer },
+    wrapKey,
+    ctBytes.buffer.slice(ctBytes.byteOffset, ctBytes.byteOffset + ctBytes.byteLength) as ArrayBuffer
+  );
   return importPrivateKey(new TextDecoder().decode(plain));
 }
 
@@ -118,10 +125,12 @@ export async function decryptMessage(
   key: CryptoKey,
   payload: EncryptedPayload
 ): Promise<string> {
+  const ctBytes = b64ToU8(payload.ct);
+  const ivBytes = b64ToU8(payload.iv);
   const plain = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: b64ToU8(payload.iv) },
+    { name: 'AES-GCM', iv: ivBytes.buffer.slice(ivBytes.byteOffset, ivBytes.byteOffset + ivBytes.byteLength) as ArrayBuffer },
     key,
-    b64ToU8(payload.ct)
+    ctBytes.buffer.slice(ctBytes.byteOffset, ctBytes.byteOffset + ctBytes.byteLength) as ArrayBuffer
   );
   return new TextDecoder().decode(plain);
 }
@@ -135,7 +144,8 @@ export async function decryptMessage(
  * "Safety Numbers".
  */
 export async function getKeyFingerprint(publicKeyB64: string): Promise<string> {
-  const hash = await crypto.subtle.digest('SHA-256', b64ToU8(publicKeyB64));
+  const bytes = b64ToU8(publicKeyB64);
+  const hash = await crypto.subtle.digest('SHA-256', bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer);
   const hex = Array.from(new Uint8Array(hash))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
@@ -146,7 +156,7 @@ export async function getKeyFingerprint(publicKeyB64: string): Promise<string> {
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
 function u8ToB64(buf: Uint8Array): string {
-  return btoa(String.fromCharCode(...buf));
+  return btoa(Array.from(buf, (b) => String.fromCharCode(b)).join(''));
 }
 
 function b64ToU8(b64: string): Uint8Array {
@@ -154,15 +164,17 @@ function b64ToU8(b64: string): Uint8Array {
 }
 
 async function deriveWrapKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
+  const passphraseBytes = new TextEncoder().encode(passphrase);
   const base = await crypto.subtle.importKey(
     'raw',
-    new TextEncoder().encode(passphrase),
+    passphraseBytes.buffer.slice(passphraseBytes.byteOffset, passphraseBytes.byteOffset + passphraseBytes.byteLength) as ArrayBuffer,
     'PBKDF2',
     false,
     ['deriveKey']
   );
+  const saltBuf = salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength) as ArrayBuffer;
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: 250_000, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: saltBuf, iterations: 250_000, hash: 'SHA-256' },
     base,
     AES,
     false,

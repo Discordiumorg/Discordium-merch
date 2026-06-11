@@ -270,9 +270,17 @@ export default function LivePage() {
               {liveStreams.length} live now
             </span>
           </div>
-          <button className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60">
-            <Search size={16} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push('/live/earnings')}
+              className="flex items-center gap-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full px-3 py-1.5 text-purple-300 text-xs font-semibold"
+            >
+              💎 Einnahmen
+            </button>
+            <button className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60">
+              <Search size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Category filter */}
@@ -394,22 +402,17 @@ export default function LivePage() {
       {/* Go Live FAB */}
       <motion.button
         whileTap={{ scale: 0.92 }}
-        onClick={() => setShowGoLive(true)}
-        className="fixed bottom-24 right-5 z-40 gradient-brand text-white font-bold px-4 py-3 rounded-2xl flex items-center gap-2 shadow-xl"
-        style={{ boxShadow: '0 0 20px rgba(124,58,237,0.5)' }}
+        onClick={() => router.push('/live/go-live')}
+        animate={{ boxShadow: ['0 0 20px rgba(236,72,153,0.4)', '0 0 32px rgba(124,58,237,0.6)', '0 0 20px rgba(236,72,153,0.4)'] }}
+        transition={{ repeat: Infinity, duration: 2 }}
+        className="fixed bottom-24 right-5 z-40 gradient-brand text-white font-bold px-5 py-3.5 rounded-2xl flex items-center gap-2"
       >
         <Video size={18} />
-        <span className="text-sm">Go Live</span>
+        <span className="text-sm font-black">Go Live 🔴</span>
       </motion.button>
 
       <BottomNav matchCount={unreadMatches} visitorCount={newVisitors} />
 
-      {/* Go Live Modal */}
-      <AnimatePresence>
-        {showGoLive && (
-          <GoLiveModal onClose={() => setShowGoLive(false)} />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

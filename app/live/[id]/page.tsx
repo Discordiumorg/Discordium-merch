@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
 import {
-  ArrowLeft, Share2, Heart, MessageCircle, MoreHorizontal, Send,
-  Shield, ShieldCheck, AlertTriangle, Trash2, Clock, Ban, Pin,
+  ArrowLeft, Share2, Heart, MessageCircle, Send,
+  Shield, ShieldCheck, Trash2, Clock, Ban, Pin,
   X, ChevronRight, Filter, Activity, Flag, Settings, Check, Zap,
 } from 'lucide-react';
 import {
@@ -13,6 +13,7 @@ import {
   formatStreamDuration, categoryMeta,
   type LiveMessage, type ModActionType,
 } from '@/lib/liveData';
+import LiveGiftToast, { type GiftToastItem } from '@/components/LiveGiftToast';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -80,6 +81,7 @@ export default function StreamViewerPage() {
   const [selectedMsg, setSelectedMsg]     = useState<LiveMessage | null>(null);
   const [reportedIds, setReportedIds]     = useState<Set<string>>(new Set());
   const [toast, setToast]           = useState('');
+  const [giftToastItems, setGiftToastItems] = useState<GiftToastItem[]>([]);
 
   const messagePool = useRef<LiveMessage[]>(generateLiveMessages());
   const poolIndex   = useRef(0);
@@ -87,6 +89,22 @@ export default function StreamViewerPage() {
   const cdRef       = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
+
+  const addGiftToast = useCallback((senderName: string, senderColor: string, gift: (typeof liveGifts)[0]) => {
+    const tier = gift.coinCost >= 500 ? 'legendary' : gift.coinCost >= 200 ? 'epic' : gift.coinCost >= 100 ? 'rare' : gift.coinCost >= 25 ? 'uncommon' : 'common';
+    setGiftToastItems((prev) => {
+      const existing = prev.find((i) => i.senderName === senderName && i.gift.id === gift.id && Date.now() - i.ts < 3000);
+      if (existing) return prev.map((i) => i.id === existing.id ? { ...i, count: i.count + 1 } : i);
+      return [...prev, {
+        id: `gt-${Date.now()}-${Math.random()}`,
+        senderName,
+        senderColor,
+        gift: { ...gift, tier, animationType: tier === 'legendary' ? 'legendary' : tier === 'epic' ? 'fullscreen' : 'toast' },
+        count: 1,
+        ts: Date.now(),
+      }];
+    });
+  }, []);
 
   // ── auto-scroll ─────────────────────────────────────────────────────────────
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
@@ -105,9 +123,13 @@ export default function StreamViewerPage() {
         text = r.out; flagged = flagged || r.flagged;
       }
       setMessages((p) => [...p.slice(-14), { ...raw, id: `live-${Date.now()}-${Math.random()}`, text, flagged, timestamp: new Date() }]);
+      if (raw.type === 'gift' && raw.giftEmoji) {
+        const matchedGift = liveGifts.find((g) => g.emoji === raw.giftEmoji);
+        if (matchedGift) addGiftToast(raw.userName, raw.color, matchedGift);
+      }
     }, 2000 + Math.random() * 1200);
     return () => clearInterval(t);
-  }, [bannedUsers, timedOutUsers, wordFilterOn, blockedWords]);
+  }, [bannedUsers, timedOutUsers, wordFilterOn, blockedWords, addGiftToast]);
 
   // ── viewer count ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -159,7 +181,8 @@ export default function StreamViewerPage() {
     const id = ++giftIdRef.current;
     setFloatingGifts((p) => [...p, { id, emoji: gift.emoji }]);
     setTimeout(() => setFloatingGifts((p) => p.filter((g) => g.id !== id)), 2000);
-  }, [coins, giftIdRef]);
+    addGiftToast('Du', '#a78bfa', gift);
+  }, [coins, giftIdRef, addGiftToast]);
 
   // ── send chat ───────────────────────────────────────────────────────────────
   const sendChat = () => {
@@ -712,6 +735,12 @@ export default function StreamViewerPage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* ── GIFT TOASTS ── */}
+      <LiveGiftToast
+        items={giftToastItems}
+        onExpire={(id) => setGiftToastItems((p) => p.filter((i) => i.id !== id))}
+      />
 
       {/* ── FLOATING HEARTS ── */}
       <AnimatePresence>
