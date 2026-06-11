@@ -1,9 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
-const { PrismaLibSql } = require('@prisma/adapter-libsql');
 const bcrypt = require('bcryptjs');
 
-const adapter = new PrismaLibSql({ url: 'file:./dev.db' });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
   const demoHash = await bcrypt.hash('demo123', 12);
@@ -11,7 +9,11 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: 'demo@aura.app' },
-    update: {},
+    update: {
+      coins: 500, diamonds: 50, boosts: 5, superLikes: 20, roses: 10,
+      premium: true, premiumTier: 'platinum',
+      premiumUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    },
     create: {
       email: 'demo@aura.app',
       name: 'Demo User',
@@ -35,7 +37,7 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: 'admin@aura.app' },
-    update: {},
+    update: { isAdmin: true, coins: 9999, diamonds: 9999, boosts: 99, superLikes: 99 },
     create: {
       email: 'admin@aura.app',
       name: 'Admin',
@@ -51,7 +53,7 @@ async function main() {
     },
   });
 
-  console.log('Seed complete: demo@aura.app / demo123, admin@aura.app / admin123');
+  console.log('✓ Seed complete:\n  demo@aura.app / demo123\n  admin@aura.app / admin123');
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());

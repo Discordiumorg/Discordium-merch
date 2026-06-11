@@ -32,16 +32,32 @@ export default function PremiumPage() {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [selected, setSelected] = useState<PlanId>('premium');
   const [purchased, setPurchased] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
   const selectedPlan = plans.find((p) => p.id === selected)!;
   const price = billing === 'yearly' ? selectedPlan.yearlyPrice : selectedPlan.monthlyPrice;
 
-  const handleSubscribe = () => {
-    if (selected === 'free') return;
-    setPurchased(true);
-    setTimeout(() => {
-      router.push('/profile');
-    }, 2000);
+  const handleSubscribe = async () => {
+    if (selected === 'free' || loading) return;
+    const itemId = `${selected}-${billing === 'yearly' ? 'yearly' : 'monthly'}`;
+    setLoading(true);
+    setErrMsg(null);
+    try {
+      const res = await fetch('/api/shop/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, paymentMethod: 'demo' }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setErrMsg(data.error ?? 'Purchase failed'); return; }
+      setPurchased(true);
+      setTimeout(() => router.push('/profile'), 2000);
+    } catch {
+      setErrMsg('Network error — please try again');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -227,17 +243,24 @@ export default function PremiumPage() {
           <p className="text-white/30 text-xs mb-4">
             Cancel anytime · Secure payment · No hidden fees
           </p>
+          {errMsg && (
+            <p className="text-red-400 text-xs mb-3 flex items-center justify-center gap-1">
+              <X size={12} /> {errMsg}
+            </p>
+          )}
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleSubscribe}
-            disabled={selected === 'free'}
+            disabled={selected === 'free' || loading}
             className={`w-full py-4 rounded-2xl font-black text-lg shadow-2xl transition-all ${
               selected === 'free'
                 ? 'bg-white/10 text-white/30 cursor-not-allowed'
-                : 'gradient-brand text-white hover:opacity-90'
+                : 'gradient-brand text-white hover:opacity-90 disabled:opacity-60'
             }`}
           >
-            {selected === 'free'
+            {loading
+              ? '⏳ Processing…'
+              : selected === 'free'
               ? 'Current Plan'
               : `Subscribe to ${selectedPlan.name} ${selectedPlan.emoji}`}
           </motion.button>

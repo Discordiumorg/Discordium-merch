@@ -67,7 +67,19 @@ export default function ShopPage() {
   const [inventory, setInventory] = useState<Inventory>({ ...defaultInventory });
   const [sentGifts, setSentGifts] = useState<Set<string>>(new Set());
   const [successId, setSuccessId] = useState<string | null>(null);
-  const [giftAnimation, setGiftAnimation] = useState<string | null>(null); // emoji for animation
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [giftAnimation, setGiftAnimation] = useState<string | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
+
+  // Load real inventory from API on mount
+  useEffect(() => {
+    fetch('/api/shop/inventory')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.inventory) setInventory(data.inventory);
+      })
+      .catch(() => {});
+  }, []);
 
   const filteredItems = category === 'all'
     ? shopItems
@@ -85,37 +97,74 @@ export default function ShopPage() {
 
   const triggerSuccess = (id: string) => {
     setSuccessId(id);
-    setTimeout(() => setSuccessId(null), 1800);
+    setTimeout(() => setSuccessId(null), 2000);
   };
 
-  const confirmPurchase = () => {
-    if (!modal) return;
-    const id = modal.type === 'gift' ? modal.data.id : modal.data.id;
+  const triggerError = (msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => setErrorMsg(null), 3000);
+  };
 
-    if (modal.type === 'item') {
-      const item = modal.data as ShopItem;
-      setPurchased((p) => { const n = new Set(p); n.add(id); return n; });
-      setInventory((inv) => {
-        const u = { ...inv };
-        if (item.category === 'coins')     u.coins      += item.amount;
-        if (item.category === 'boost')     u.boosts     += item.amount;
-        if (item.category === 'superlike') u.superLikes += item.amount;
-        if (item.category === 'rose')      u.roses      += item.amount;
-        if (item.category === 'diamond')   u.diamonds   += item.amount;
-        return u;
-      });
-    } else if (modal.type === 'bundle') {
-      setPurchased((p) => { const n = new Set(p); n.add(id); return n; });
-    } else if (modal.type === 'gift') {
-      const gift = modal.data as GiftItem;
-      setInventory((inv) => ({ ...inv, coins: Math.max(0, inv.coins - gift.coinCost) }));
-      setSentGifts((p) => { const n = new Set(p); n.add(id); return n; });
-      // Trigger gift send animation
-      setGiftAnimation(gift.emoji);
-      setTimeout(() => setGiftAnimation(null), 2500);
+  const confirmPurchase = async () => {
+    if (!modal || purchasing) return;
+    const id = modal.data.id;
+    setPurchasing(true);
+
+    try {
+      if (modal.type === 'gift') {
+        const gift = modal.data as GiftItem;
+        if (inventory.coins < gift.coinCost) {
+          triggerError('Not enough coins!');
+          setModal(null);
+          return;
+        }
+        const res = await fetch('/api/shop/spend-coins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'gift', coinCost: gift.coinCost, itemId: gift.id, itemName: gift.name }),
+        });
+        const data = await res.json();
+        if (!res.ok) { triggerError(data.error ?? 'Failed'); setModal(null); return; }
+        if (data.inventory) setInventory(data.inventory);
+        setSentGifts((p) => { const n = new Set(p); n.add(id); return n; });
+        setGiftAnimation(gift.emoji);
+        setTimeout(() => setGiftAnimation(null), 2500);
+      } else {
+        const res = await fetch('/api/shop/purchase', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemId: id, paymentMethod: 'demo' }),
+        });
+        const data = await res.json();
+        if (!res.ok) { triggerError(data.error ?? 'Purchase failed'); setModal(null); return; }
+        if (data.inventory) setInventory(data.inventory);
+        setPurchased((p) => { const n = new Set(p); n.add(id); return n; });
+      }
+      triggerSuccess(id);
+    } catch {
+      triggerError('Network error — please try again');
+    } finally {
+      setPurchasing(false);
+      setModal(null);
     }
-    triggerSuccess(id);
-    setModal(null);
+  };
+
+  const spendCoins = async (coinCost: number, action: string, itemId: string, onSuccess: () => void) => {
+    if (inventory.coins < coinCost) { triggerError('Not enough coins!'); return; }
+    try {
+      const res = await fetch('/api/shop/spend-coins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, coinCost, itemId, itemName: action }),
+      });
+      const data = await res.json();
+      if (!res.ok) { triggerError(data.error ?? 'Failed'); return; }
+      if (data.inventory) setInventory(data.inventory);
+      onSuccess();
+      triggerSuccess(itemId);
+    } catch {
+      triggerError('Network error');
+    }
   };
 
   return (
@@ -451,11 +500,7 @@ export default function ShopPage() {
                 </div>
                 <motion.button
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => {
-                    if (inventory.coins < 200) { triggerSuccess('no-coins'); return; }
-                    setInventory((inv) => ({ ...inv, coins: inv.coins - 200 }));
-                    triggerSuccess('spotlight-30');
-                  }}
+                  onClick={() => spendCoins(200, 'Spotlight 30min', 'spotlight-30', () => {})}
                   className="flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg"
                 >
                   Activate
@@ -519,11 +564,7 @@ export default function ShopPage() {
                   </div>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => {
-                      if (inventory.coins < rose.coins) { triggerSuccess('no-coins'); return; }
-                      setInventory((inv) => ({ ...inv, coins: inv.coins - rose.coins, roses: inv.roses + 1 }));
-                      triggerSuccess(rose.id);
-                    }}
+                    onClick={() => spendCoins(rose.coins, rose.name, rose.id, () => {})}
                     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r ${rose.color} text-white shadow-lg`}
                   >
                     {rose.coins} 🪙
@@ -847,6 +888,17 @@ export default function ShopPage() {
             Purchase successful!
           </motion.div>
         )}
+        {errorMsg && (
+          <motion.div
+            key={errorMsg}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 whitespace-nowrap"
+          >
+            ✕ {errorMsg}
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* ── Purchase Modal ── */}
@@ -956,9 +1008,10 @@ export default function ShopPage() {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={confirmPurchase}
-                  className={`flex-1 py-3 rounded-2xl bg-gradient-to-r ${modal.data.color} text-white font-black text-sm shadow-lg`}
+                  disabled={purchasing}
+                  className={`flex-1 py-3 rounded-2xl bg-gradient-to-r ${modal.data.color} text-white font-black text-sm shadow-lg disabled:opacity-60`}
                 >
-                  {modal.type === 'gift' ? 'Send Gift 🎁' : 'Confirm Purchase'}
+                  {purchasing ? '⏳ Processing…' : modal.type === 'gift' ? 'Send Gift 🎁' : 'Confirm Purchase'}
                 </motion.button>
               </div>
 

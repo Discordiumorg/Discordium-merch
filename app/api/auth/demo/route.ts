@@ -6,11 +6,11 @@ import bcrypt from 'bcryptjs';
 export async function POST() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let user = await (prisma as any).user.findUnique({ where: { email: 'demo@aura.app' } });
+    let user = await prisma.user.findUnique({ where: { email: 'demo@aura.app' } });
     if (!user) {
       const hash = await bcrypt.hash('demo123', 12);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      user = await (prisma as any).user.create({
+      user = await prisma.user.create({
         data: {
           email: 'demo@aura.app',
           name: 'Demo User',

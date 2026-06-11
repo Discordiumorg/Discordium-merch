@@ -21,9 +21,3 @@ yarn-error.log*
 tsconfig.tsbuildinfo
 
 /lib/generated/prisma
-
-# Prisma SQLite database
-*.db
-*.db-journal
-*.db-wal
-*.db-shm

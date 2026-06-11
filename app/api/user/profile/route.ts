@@ -6,7 +6,7 @@ export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const user = await (prisma as any).user.findUnique({ where: { id: session.userId } });
+  const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ user });
 }
@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await (prisma as any).user.update({
+    const user = await prisma.user.update({
       where: { id: session.userId },
       data,
     });

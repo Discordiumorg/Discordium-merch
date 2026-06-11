@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -36,21 +37,21 @@ model User {
 }
 
 model Transaction {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type          String
-  itemId        String?
-  itemName      String
-  amount        Float
-  currency      String   @default("EUR")
-  coinsChange   Int?
-  diamondsChange Int?
-  boostsChange  Int?
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String
+  itemId          String?
+  itemName        String
+  amount          Float
+  currency        String   @default("EUR")
+  coinsChange     Int?
+  diamondsChange  Int?
+  boostsChange    Int?
   superLikesChange Int?
-  rosesChange   Int?
-  status        String   @default("completed")
-  paymentMethod String?
-  note          String?
-  createdAt     DateTime @default(now())
+  rosesChange     Int?
+  status          String   @default("completed")
+  paymentMethod   String?
+  note            String?
+  createdAt       DateTime @default(now())
 }

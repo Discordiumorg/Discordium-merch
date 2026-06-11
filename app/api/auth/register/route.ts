@@ -18,14 +18,14 @@ export async function POST(req: NextRequest) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existing = await (prisma as any).user.findUnique({ where: { email: email.toLowerCase() } });
+    const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (existing) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await (prisma as any).user.create({
+    const user = await prisma.user.create({
       data: {
         email: email.toLowerCase(),
         name,

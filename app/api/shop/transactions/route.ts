@@ -8,7 +8,7 @@ export async function GET() {
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const transactions = await (prisma as any).transaction.findMany({
+    const transactions = await prisma.transaction.findMany({
       where: { userId: session.userId },
       orderBy: { createdAt: 'desc' },
       take: 50,

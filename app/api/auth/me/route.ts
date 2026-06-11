@@ -9,7 +9,7 @@ export async function GET() {
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await (prisma as any).user.findUnique({ where: { id: session.userId } });
+    const user = await prisma.user.findUnique({ where: { id: session.userId } });
     if (!user) return NextResponse.json({ user: null });
     return NextResponse.json({
       user: {
