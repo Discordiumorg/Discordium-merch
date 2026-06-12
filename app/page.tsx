@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, ArrowLeft, ArrowRight, Phone, Mail, ChevronDown, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { AuraLogomark } from '@/components/AuraLogo';
+import { useI18n } from '@/lib/i18n';
 
 type AuthMode = 'landing' | 'auth' | 'email' | 'phone' | 'otp';
 type AuthIntent = 'login' | 'register';
@@ -70,11 +71,7 @@ const SOCIAL_PROVIDERS = [
   { id: 'x',        label: 'X',        icon: XIcon,        bg: 'bg-[#111]',       text: 'text-white',    border: 'border-white/10' },
 ];
 
-const STATS = [
-  { value: '2,4M+', label: 'Nutzer', emoji: '👥' },
-  { value: '840T',  label: 'Matches', emoji: '💞' },
-  { value: '4,9★',  label: 'Bewertung', emoji: '⭐' },
-];
+// STATS labels are now i18n-aware; see stats array inside component
 
 const FLOATING_SEEDS = ['aura1','aura2','aura3','aura4','aura5','aura6'];
 
@@ -138,6 +135,12 @@ const INPUT_CLS = "w-full bg-white/6 border border-white/12 rounded-xl px-4 py-3
 
 export default function LandingPage() {
   const router = useRouter();
+  const { t } = useI18n();
+  const stats = [
+    { value: '2,4M+', label: t.landing.stats.users,   emoji: '👥' },
+    { value: '840T',  label: t.landing.stats.matches,  emoji: '💞' },
+    { value: '4,9★',  label: t.landing.stats.rating,   emoji: '⭐' },
+  ];
   const [mode, setMode] = useState<AuthMode>('landing');
   const [intent, setIntent] = useState<AuthIntent>('register');
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
@@ -183,19 +186,19 @@ export default function LandingPage() {
     setLoadingProvider(providerId);
     await new Promise((r) => setTimeout(r, 800));
     setLoadingProvider(null);
-    showToast(`${providerId.charAt(0).toUpperCase() + providerId.slice(1)}-Login kommt bald`, 'error');
+    showToast(`${providerId.charAt(0).toUpperCase() + providerId.slice(1)}${t.landing.errors.socialComingSoon}`, 'error');
   };
 
   const validateEmail = () => {
     const e: Record<string, string> = {};
-    if (!formData.email) e.email = 'E-Mail ist erforderlich';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Ungültige E-Mail-Adresse';
-    if (!formData.password) e.password = 'Passwort ist erforderlich';
-    else if (formData.password.length < 6) e.password = 'Mindestens 6 Zeichen';
+    if (!formData.email) e.email = t.landing.errors.emailRequired;
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = t.landing.errors.invalidEmail;
+    if (!formData.password) e.password = t.landing.errors.passwordRequired;
+    else if (formData.password.length < 6) e.password = t.landing.errors.passwordTooShort;
     if (intent === 'register') {
-      if (!formData.name.trim()) e.name = 'Name ist erforderlich';
-      if (!formData.age) e.age = 'Alter ist erforderlich';
-      else if (parseInt(formData.age) < 18) e.age = 'Mindestalter: 18 Jahre';
+      if (!formData.name.trim()) e.name = t.landing.errors.nameRequired;
+      if (!formData.age) e.age = t.landing.errors.ageRequired;
+      else if (parseInt(formData.age) < 18) e.age = t.landing.errors.mustBe18;
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -214,22 +217,21 @@ export default function LandingPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        // Translate common server errors to German
         const errMap: Record<string, string> = {
-          'Invalid email or password': 'E-Mail oder Passwort falsch',
-          'Email already registered': 'E-Mail bereits registriert',
-          'Missing required fields': 'Bitte alle Felder ausfüllen',
-          'Password must be at least 6 characters': 'Passwort muss mindestens 6 Zeichen haben',
-          'Must be 18 or older': 'Du musst mindestens 18 Jahre alt sein',
-          'Internal server error': 'Serverfehler — bitte versuche es erneut',
+          'Invalid email or password': t.landing.errors.invalidCredentials,
+          'Email already registered': t.landing.errors.emailInUse,
+          'Missing required fields': t.landing.errors.missingFields,
+          'Password must be at least 6 characters': t.landing.errors.passwordTooShort,
+          'Must be 18 or older': t.landing.errors.mustBe18,
+          'Internal server error': t.landing.errors.serverError,
         };
-        showToast(errMap[data.error] ?? data.error ?? 'Ein Fehler ist aufgetreten', 'error');
+        showToast(errMap[data.error] ?? data.error ?? t.landing.errors.serverError, 'error');
         return;
       }
-      showToast(intent === 'register' ? 'Konto erstellt! Willkommen 🎉' : 'Willkommen zurück! 👋', 'success');
+      showToast(intent === 'register' ? t.landing.errors.accountCreated : t.landing.errors.welcomeBack, 'success');
       setTimeout(() => router.push(intent === 'register' ? '/onboarding' : '/dashboard'), 600);
     } catch {
-      showToast('Netzwerkfehler — bitte versuche es erneut', 'error');
+      showToast(t.landing.errors.networkError, 'error');
     } finally {
       setEmailLoading(false);
     }
@@ -273,10 +275,10 @@ export default function LandingPage() {
       const res = await fetch('/api/auth/demo', { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
-        showToast(data.error ?? 'Demo-Login fehlgeschlagen', 'error');
+        showToast(data.error ?? t.landing.errors.demoFailed, 'error');
         return;
       }
-      showToast('Demo-Modus aktiviert!', 'success');
+      showToast(t.landing.errors.demoActivated, 'success');
       setTimeout(() => router.push('/dashboard'), 500);
     } catch {
       router.push('/dashboard');
@@ -327,7 +329,7 @@ export default function LandingPage() {
                 style={{ background: 'linear-gradient(135deg, #e879f9 0%, #f9a8d4 45%, #fb7185 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 aura
               </h1>
-              <p className="text-white/35 text-xs font-semibold tracking-[0.25em] uppercase">Spür die Verbindung</p>
+              <p className="text-white/35 text-xs font-semibold tracking-[0.25em] uppercase">{t.landing.tagline}</p>
             </motion.div>
 
             {/* Floating avatar gallery */}
@@ -365,7 +367,7 @@ export default function LandingPage() {
             {/* Stats row */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
               className="flex gap-3 mb-8">
-              {STATS.map((s, i) => (
+              {stats.map((s, i) => (
                 <motion.div key={s.label}
                   initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.22 + i * 0.06 }}
                   className="flex-1 rounded-2xl px-3 py-3.5 text-center"
@@ -383,7 +385,7 @@ export default function LandingPage() {
             {/* Feature pills */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
               className="flex gap-2 flex-wrap justify-center mb-7">
-              {['KI-Matching', 'Livestreams', 'Video-Dates', 'Stories', 'Sicher & Privat'].map((f) => (
+              {t.landing.features.map((f) => (
                 <span key={f} className="text-[11px] font-semibold text-white/45 bg-white/5 border border-white/8 px-3 py-1 rounded-full">
                   {f}
                 </span>
@@ -395,12 +397,12 @@ export default function LandingPage() {
               className="space-y-3">
               <motion.button whileTap={{ scale: 0.97 }} onClick={() => goAuth('register')}
                 className="w-full gradient-brand text-white font-bold py-4 rounded-2xl text-base glow-button flex items-center justify-center gap-2 shadow-lg">
-                Kostenloses Konto erstellen <ArrowRight size={17} />
+                {t.landing.createAccount} <ArrowRight size={17} />
               </motion.button>
               <button onClick={() => goAuth('login')}
                 className="w-full text-white font-semibold py-3.5 rounded-2xl text-sm transition-colors"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                Bereits registriert? Anmelden
+                {t.landing.signIn}
               </button>
               <motion.button
                 onClick={handleDemoLogin}
@@ -408,13 +410,13 @@ export default function LandingPage() {
                 whileTap={{ scale: 0.97 }}
                 className="w-full py-2.5 flex items-center justify-center gap-2 text-white/40 text-sm hover:text-white/65 transition-colors disabled:opacity-50">
                 {loadingProvider === 'demo'
-                  ? <><Spinner size={14} /> Demo wird geladen…</>
-                  : <><Sparkles size={14} className="text-purple-400" /> Demo ausprobieren — kein Konto nötig</>}
+                  ? <><Spinner size={14} /> {t.landing.demoLoading}</>
+                  : <><Sparkles size={14} className="text-purple-400" /> {t.landing.tryDemo}</>}
               </motion.button>
             </motion.div>
 
             <p className="text-white/15 text-[10px] text-center mt-6 leading-relaxed">
-              Nur ab 18 Jahren · Mit der Nutzung stimmst du unseren AGB & Datenschutzbestimmungen zu
+              {t.landing.ageDisclaimer}
             </p>
           </motion.div>
         )}
