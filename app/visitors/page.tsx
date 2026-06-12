@@ -17,11 +17,11 @@ interface Admirer {
 }
 
 const mockAdmirers: Admirer[] = [
-  { id: 'a1', silhouette: '👤', ageRange: 'mid 20s', city: 'Berlin', hint: 'Shares 3 of your interests 🎯', timeAgo: '2h ago', clueRequested: false },
-  { id: 'a2', silhouette: '👤', ageRange: 'late 20s', city: 'Hamburg', hint: 'Has similar relationship goals 💍', timeAgo: '5h ago', clueRequested: false },
-  { id: 'a3', silhouette: '👤', ageRange: 'early 30s', city: 'Munich', hint: 'Visited your profile 4 times 👀', timeAgo: '1d ago', clueRequested: false },
-  { id: 'a4', silhouette: '👤', ageRange: 'mid 20s', city: 'Cologne', hint: 'Works in a creative field 🎨', timeAgo: '1d ago', clueRequested: false },
-  { id: 'a5', silhouette: '👤', ageRange: 'late 20s', city: 'Frankfurt', hint: 'Loves hiking and coffee ☕', timeAgo: '2d ago', clueRequested: false },
+  { id: 'a1', silhouette: '👤', ageRange: 'Mitte 20', city: 'Berlin', hint: 'Hat 3 deiner Interessen 🎯', timeAgo: 'Vor 2h', clueRequested: false },
+  { id: 'a2', silhouette: '👤', ageRange: 'Ende 20', city: 'Hamburg', hint: 'Gleiches Beziehungsziel 💍', timeAgo: 'Vor 5h', clueRequested: false },
+  { id: 'a3', silhouette: '👤', ageRange: 'Anfang 30', city: 'München', hint: 'Hat dein Profil 4× besucht 👀', timeAgo: 'Vor 1T', clueRequested: false },
+  { id: 'a4', silhouette: '👤', ageRange: 'Mitte 20', city: 'Köln', hint: 'Arbeitet in einem kreativen Bereich 🎨', timeAgo: 'Vor 1T', clueRequested: false },
+  { id: 'a5', silhouette: '👤', ageRange: 'Ende 20', city: 'Frankfurt', hint: 'Liebt Wandern und Kaffee ☕', timeAgo: 'Vor 2T', clueRequested: false },
 ];
 
 export default function VisitorsPage() {
@@ -71,7 +71,7 @@ export default function VisitorsPage() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <h1 className="text-white font-black text-xl">
-              {activeTab === 'visitors' ? 'Profile Visitors' : activeTab === 'flirts' ? 'Flirts' : 'Admirers'}
+              {activeTab === 'visitors' ? 'Besucher' : activeTab === 'flirts' ? 'Flirts' : 'Bewunderer'}
             </h1>
             {newVisitors > 0 && activeTab === 'visitors' && (
               <motion.span
@@ -79,7 +79,7 @@ export default function VisitorsPage() {
                 animate={{ scale: 1 }}
                 className="gradient-brand text-white text-xs font-bold px-2.5 py-1 rounded-full"
               >
-                {newVisitors} new
+                {newVisitors} Neu
               </motion.span>
             )}
           </div>
@@ -96,7 +96,7 @@ export default function VisitorsPage() {
                   : 'text-white/50 hover:text-white/80'
               }`}
             >
-              {tab === 'visitors' ? `👁️ Visitors` : tab === 'flirts' ? `😉 Flirts (${mockFlirts.length})` : `🔮 Admirers`}
+              {tab === 'visitors' ? `👁️ Besucher` : tab === 'flirts' ? `😉 Flirts (${mockFlirts.length})` : `🔮 Bewunderer`}
             </button>
           ))}
         </div>
@@ -114,8 +114,8 @@ export default function VisitorsPage() {
           >
             <div className="card-glass rounded-2xl p-4 mb-4 border border-purple-500/20 text-center">
               <p className="text-2xl mb-1">👀</p>
-              <p className="text-white font-bold text-base">Someone likes you anonymously</p>
-              <p className="text-white/50 text-xs mt-1">They&apos;re too shy to show themselves — for now</p>
+              <p className="text-white font-bold text-base">Jemand mag dich anonym</p>
+              <p className="text-white/50 text-xs mt-1">Sie sind noch zu schüchtern — für jetzt</p>
             </div>
 
             {admirers.map((admirer, i) => (
@@ -151,7 +151,7 @@ export default function VisitorsPage() {
                     onClick={() => setShowPremiumModal(true)}
                     className="flex-shrink-0 bg-gradient-to-br from-purple-600 to-pink-500 text-white text-xs font-bold px-3 py-2 rounded-xl hover:opacity-90 transition-opacity"
                   >
-                    Reveal ✨
+                    Enthüllen ✨
                   </button>
                 </div>
 
@@ -159,14 +159,14 @@ export default function VisitorsPage() {
                 <div className="relative z-10 mt-3 pt-3 border-t border-white/10">
                   {admirer.clueRequested ? (
                     <p className="text-purple-300 text-xs text-center font-semibold">
-                      🔮 Clue request sent!
+                      🔮 Hinweis angefragt!
                     </p>
                   ) : (
                     <button
                       onClick={() => handleClueRequest(admirer.id)}
                       className="w-full text-white/50 text-xs font-medium hover:text-purple-300 transition-colors flex items-center justify-center gap-1.5"
                     >
-                      🔮 Send a clue request
+                      🔮 Hinweis anfragen
                     </button>
                   )}
                 </div>
@@ -181,7 +181,7 @@ export default function VisitorsPage() {
             exit={{ opacity: 0, x: -20 }}
             className="pt-4 space-y-3"
           >
-            <p className="text-white/50 text-xs mb-4">People who winked at you!</p>
+            <p className="text-white/50 text-xs mb-4">Personen die dir zugezwinkert haben!</p>
             {mockFlirts.map((flirt, i) => {
               const hasWinkedBack = winkedBack.has(flirt.user.id);
               return (
@@ -214,7 +214,7 @@ export default function VisitorsPage() {
                       {flirt.user.relationshipGoal}
                     </span>
                     <p className="text-white/40 text-xs mt-1">
-                      Winked {formatRelativeTime(flirt.sentAt)}
+                      Gezwinkert {formatRelativeTime(flirt.sentAt)}
                     </p>
                   </div>
                   <div className="flex-shrink-0">
@@ -224,7 +224,7 @@ export default function VisitorsPage() {
                         animate={{ scale: 1 }}
                         className="text-xs text-yellow-400 font-semibold bg-yellow-500/20 px-3 py-2 rounded-xl border border-yellow-500/30"
                       >
-                        Winked ✓
+                        Zurückgezwinkert ✓
                       </motion.span>
                     ) : (
                       <motion.button
@@ -232,7 +232,7 @@ export default function VisitorsPage() {
                         onClick={() => setWinkedBack((prev) => { const n = new Set(prev); n.add(flirt.user.id); return n; })}
                         className="bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 text-xs font-bold px-4 py-2 rounded-xl hover:bg-yellow-500/30 transition-colors flex items-center gap-1.5"
                       >
-                        😉 Wink back
+                        😉 Zurückzwinkern
                       </motion.button>
                     )}
                   </div>
@@ -260,7 +260,7 @@ export default function VisitorsPage() {
               <Eye size={14} className="text-purple-400" />
             </div>
             <p className="text-white font-bold text-xl">{mockVisitors.length}</p>
-            <p className="text-white/40 text-[10px]">Total Views</p>
+            <p className="text-white/40 text-[10px]">Aufrufe gesamt</p>
           </motion.div>
 
           <motion.div
@@ -273,7 +273,7 @@ export default function VisitorsPage() {
               <Sparkles size={14} className="text-yellow-400" />
             </div>
             <p className="text-white font-bold text-xl">{todayVisitors}</p>
-            <p className="text-white/40 text-[10px]">Today</p>
+            <p className="text-white/40 text-[10px]">Heute</p>
           </motion.div>
 
           <motion.div
@@ -286,7 +286,7 @@ export default function VisitorsPage() {
               <TrendingUp size={14} className="text-green-400" />
             </div>
             <p className="text-green-400 font-bold text-xl">+{growthPercent}%</p>
-            <p className="text-white/40 text-[10px]">This week</p>
+            <p className="text-white/40 text-[10px]">Diese Woche</p>
           </motion.div>
         </div>
 
@@ -301,8 +301,8 @@ export default function VisitorsPage() {
             <Sparkles size={22} className="text-white" />
           </div>
           <div className="flex-1">
-            <p className="text-white font-bold text-sm">Boost your profile</p>
-            <p className="text-white/80 text-xs mt-0.5">Get 10x more views in the next hour</p>
+            <p className="text-white font-bold text-sm">Profil boosten</p>
+            <p className="text-white/80 text-xs mt-0.5">Erhalte 10× mehr Aufrufe in der nächsten Stunde</p>
           </div>
           <button className="bg-white text-purple-700 text-xs font-black px-4 py-2 rounded-xl hover:bg-white/90 transition-colors flex-shrink-0">
             Boost
@@ -311,7 +311,7 @@ export default function VisitorsPage() {
 
         {/* Section label */}
         <p className="text-white/50 text-xs font-medium uppercase tracking-wider mb-3">
-          Recent Visitors
+          Letzte Besucher
         </p>
 
         {/* Visible visitors */}
@@ -341,7 +341,7 @@ export default function VisitorsPage() {
                   {/* New indicator for recent visitors */}
                   {Date.now() - visitor.visitedAt.getTime() < 3600000 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-pink-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                      new
+                      Neu
                     </span>
                   )}
                 </div>
@@ -364,7 +364,7 @@ export default function VisitorsPage() {
                   </div>
 
                   <p className="text-white/40 text-xs">
-                    Visited {formatRelativeTime(visitor.visitedAt)}
+                    Besucht {formatRelativeTime(visitor.visitedAt)}
                   </p>
                 </div>
 
@@ -372,7 +372,7 @@ export default function VisitorsPage() {
                 <div className="flex-shrink-0">
                   {isMatch ? (
                     <span className="text-xs text-purple-400 font-semibold bg-purple-500/20 px-3 py-2 rounded-xl border border-purple-500/30">
-                      Matched ❤️
+                      Match ❤️
                     </span>
                   ) : isLikedBack ? (
                     <motion.span
@@ -430,10 +430,10 @@ export default function VisitorsPage() {
               >
                 <Lock size={28} className="text-purple-400 mx-auto mb-2" />
                 <p className="text-white font-bold text-base mb-1">
-                  +{lockedVisitors.length} more visitors
+                  +{lockedVisitors.length} weitere Besucher
                 </p>
                 <p className="text-white/50 text-xs mb-3">
-                  Upgrade to Premium to see everyone who viewed your profile
+                  Premium freischalten um alle Besucher zu sehen
                 </p>
                 <button className="gradient-brand text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
                   Unlock All ✨
@@ -452,13 +452,13 @@ export default function VisitorsPage() {
         >
           <h3 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
             <TrendingUp size={16} className="text-purple-400" />
-            Profile Activity
+            Profilaktivität
           </h3>
           <div className="space-y-2.5">
             {[
-              { label: 'Profile views this week', value: weeklyViews, max: 50 },
-              { label: 'Likes received', value: 12, max: 50 },
-              { label: 'Super likes', value: 3, max: 20 },
+              { label: 'Profilaufrufe diese Woche', value: weeklyViews, max: 50 },
+              { label: 'Erhaltene Likes', value: 12, max: 50 },
+              { label: 'Super-Likes', value: 3, max: 20 },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="flex justify-between text-xs mb-1">
@@ -504,21 +504,21 @@ export default function VisitorsPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-4xl mb-3">🔮</div>
-              <h2 className="text-white font-black text-xl mb-2">Upgrade to Platinum</h2>
+              <h2 className="text-white font-black text-xl mb-2">Auf Platinum upgraden</h2>
               <p className="text-white/60 text-sm mb-5 leading-relaxed">
-                Reveal your anonymous admirer and see who secretly likes you. Upgrade to Platinum to unlock all admirers.
+                Enthülle deinen anonymen Bewunderer und sieh wer dich heimlich mag. Upgrade auf Platinum um alle freizuschalten.
               </p>
               <button
                 onClick={() => setShowPremiumModal(false)}
                 className="w-full gradient-brand text-white font-black py-3 rounded-2xl mb-3 hover:opacity-90 transition-opacity"
               >
-                Upgrade to Platinum ✨
+                Auf Platinum upgraden ✨
               </button>
               <button
                 onClick={() => setShowPremiumModal(false)}
                 className="w-full text-white/40 text-sm font-medium"
               >
-                Maybe later
+                Vielleicht später
               </button>
             </motion.div>
           </motion.div>
@@ -534,7 +534,7 @@ export default function VisitorsPage() {
             exit={{ opacity: 0, y: 40 }}
             className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-purple-600 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 pointer-events-none"
           >
-            🔮 Clue request sent!
+            🔮 Hinweis angefragt!
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Minus, List, MapPin, MessageCircle, Heart } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, List, MapPin, MessageCircle, Heart, Users } from 'lucide-react';
 import { mockUsers, mockMatches, mockVisitors, goalColors, goalEmojis } from '@/lib/mockData';
 import BottomNav from '@/components/BottomNav';
 
@@ -39,6 +39,11 @@ export default function RadarPage() {
     return true;
   });
 
+  const onlineCount = visiblePositions.filter((pos) => {
+    const user = mockUsers.find((u) => u.id === pos.userId);
+    return user?.online;
+  }).length;
+
   const selectedUserData = selectedUser
     ? mockUsers.find((u) => u.id === selectedUser)
     : null;
@@ -70,15 +75,36 @@ export default function RadarPage() {
               }`}
             >
               <List size={14} />
-              {viewMode === 'map' ? 'List' : 'Map'}
+              {viewMode === 'map' ? 'Liste' : 'Karte'}
             </button>
           </div>
         </div>
 
+        {/* Info bar — total nearby users */}
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 mb-2 px-1"
+        >
+          <div className="flex items-center gap-1.5">
+            <Users size={13} className="text-purple-400" />
+            <span className="text-white/70 text-xs font-semibold">
+              <span className="text-white font-bold">{visiblePositions.length}</span> Personen in der Nähe
+            </span>
+          </div>
+          <div className="w-px h-3 bg-white/20" />
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
+            <span className="text-white/60 text-xs">
+              <span className="text-green-400 font-bold">{onlineCount}</span> online
+            </span>
+          </div>
+        </motion.div>
+
         {/* Radius Slider */}
         <div className="mb-2">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-white/60 text-xs font-medium">Search Radius</span>
+            <span className="text-white/60 text-xs font-medium">Suchradius</span>
             <span className="text-purple-400 text-xs font-bold">{radius} km</span>
           </div>
           <input
@@ -132,7 +158,7 @@ export default function RadarPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="relative w-full"
-              style={{ height: 'calc(100vh - 220px)' }}
+              style={{ height: 'calc(100vh - 260px)' }}
               onClick={() => setSelectedUser(null)}
             >
               {/* Dark map background */}
@@ -175,21 +201,25 @@ export default function RadarPage() {
 
               {/* Your location — center */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                {/* Ripple rings */}
-                {[1, 2, 3].map((i) => (
+                {/* Animated pulse rings */}
+                {[1, 2, 3, 4].map((i) => (
                   <motion.div
                     key={i}
-                    className="absolute rounded-full border border-blue-400/30"
-                    style={{ inset: `-${i * 12}px` }}
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{ repeat: Infinity, duration: 2, delay: i * 0.4 }}
+                    className="absolute rounded-full"
+                    style={{
+                      inset: `-${i * 14}px`,
+                      border: `${i <= 2 ? 2 : 1}px solid rgba(96, 165, 250, ${0.4 - i * 0.08})`,
+                      background: i === 1 ? 'rgba(59,130,246,0.06)' : 'transparent',
+                    }}
+                    animate={{ scale: [1, 1.25, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ repeat: Infinity, duration: 2.5, delay: i * 0.5, ease: 'easeInOut' }}
                   />
                 ))}
-                <div className="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg shadow-blue-500/50 flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg shadow-blue-500/50 flex items-center justify-center relative z-10">
                   <div className="w-2 h-2 bg-white rounded-full" />
                 </div>
-                <p className="text-white text-[9px] font-bold text-center mt-1 bg-blue-500/80 backdrop-blur-sm rounded-full px-2 py-0.5">
-                  You
+                <p className="text-white text-[9px] font-bold text-center mt-1 bg-blue-500/80 backdrop-blur-sm rounded-full px-2 py-0.5 relative z-10">
+                  Du
                 </p>
               </div>
 
@@ -200,10 +230,10 @@ export default function RadarPage() {
                 return (
                   <motion.button
                     key={pos.userId}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    transition={{ delay: i * 0.05 }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ delay: i * 0.08, type: 'spring', stiffness: 350, damping: 22 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -250,7 +280,7 @@ export default function RadarPage() {
               {/* User count */}
               <div className="absolute top-3 left-3 z-20 bg-black/60 backdrop-blur-sm rounded-xl px-3 py-1.5">
                 <p className="text-white text-xs font-semibold">
-                  {visiblePositions.length} {visiblePositions.length === 1 ? 'person' : 'people'} nearby
+                  {visiblePositions.length} {visiblePositions.length === 1 ? 'Person' : 'Personen'} in der Nähe
                 </p>
               </div>
 
@@ -285,6 +315,11 @@ export default function RadarPage() {
                           <MapPin size={10} />
                           {selectedPos.distance}
                         </p>
+                        {selectedUserData.online ? (
+                          <p className="text-green-400 text-[10px] font-semibold mt-0.5">● Jetzt online</p>
+                        ) : selectedUserData.lastSeen ? (
+                          <p className="text-white/40 text-[10px] mt-0.5">Zuletzt online: {selectedUserData.lastSeen}</p>
+                        ) : null}
                         <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full border mt-1 ${goalColors[selectedUserData.relationshipGoal]}`}>
                           {goalEmojis[selectedUserData.relationshipGoal]}
                           {selectedUserData.relationshipGoal}
@@ -297,7 +332,7 @@ export default function RadarPage() {
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-pink-500/20 text-pink-400 text-xs font-bold border border-pink-500/30"
                       >
                         <Heart size={13} fill="currentColor" />
-                        Like
+                        Mag ich
                       </motion.button>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
@@ -305,7 +340,7 @@ export default function RadarPage() {
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl gradient-brand text-white text-xs font-bold"
                       >
                         <MessageCircle size={13} />
-                        Message
+                        Nachricht
                       </motion.button>
                     </div>
                   </motion.div>
@@ -319,13 +354,13 @@ export default function RadarPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="px-4 pb-28 pt-4 overflow-y-auto space-y-3"
-              style={{ maxHeight: 'calc(100vh - 220px)' }}
+              style={{ maxHeight: 'calc(100vh - 260px)' }}
             >
               {visiblePositions.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="text-5xl mb-4">📡</div>
-                  <p className="text-white/60 font-medium">No one nearby</p>
-                  <p className="text-white/30 text-sm mt-1">Try increasing your search radius</p>
+                  <p className="text-white/60 font-medium">Niemand in der Nähe</p>
+                  <p className="text-white/30 text-sm mt-1">Versuche, deinen Suchradius zu vergrößern</p>
                 </div>
               ) : (
                 visiblePositions.map((pos, i) => {
@@ -336,7 +371,7 @@ export default function RadarPage() {
                       key={pos.userId}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
+                      transition={{ delay: i * 0.06, type: 'spring', stiffness: 300, damping: 25 }}
                       className="flex items-center gap-4 p-4 card-glass rounded-2xl"
                     >
                       <div className="relative flex-shrink-0">
@@ -358,6 +393,12 @@ export default function RadarPage() {
                           <MapPin size={10} />
                           {pos.distance}
                         </p>
+                        {/* Zuletzt online indicator */}
+                        {user.online ? (
+                          <p className="text-green-400 text-[10px] font-semibold mb-1">● Jetzt online</p>
+                        ) : user.lastSeen ? (
+                          <p className="text-white/35 text-[10px] mb-1">Zuletzt online: {user.lastSeen}</p>
+                        ) : null}
                         <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full border ${goalColors[user.relationshipGoal]}`}>
                           {goalEmojis[user.relationshipGoal]}
                           {user.relationshipGoal}

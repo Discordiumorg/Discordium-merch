@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, MapPin, Target, Sparkles, Lock, Star, Send, X } from 'lucide-react';
+import { ChevronLeft, MapPin, Target, Sparkles, Lock, Star, Send, X, Clock } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { mockUsers } from '@/lib/mockData';
 
 const DAILY_MATCH = mockUsers[0]; // Sophie
 const COMPAT_SCORE = 94;
 const MATCH_REASONS = [
-  { icon: '🎯', label: 'Same relationship goal', detail: 'Both looking for something serious' },
-  { icon: '🌍', label: 'Same city', detail: 'Both based in Berlin' },
-  { icon: '☕', label: 'Shared interests', detail: 'Coffee, Photography, Travel' },
-  { icon: '📅', label: 'Similar age', detail: 'Just 1 year apart' },
+  { icon: '🎯', label: 'Gleiches Beziehungsziel', detail: 'Beide suchen etwas Ernstes' },
+  { icon: '🌍', label: 'Gleiche Stadt', detail: 'Beide in Berlin' },
+  { icon: '☕', label: 'Gemeinsame Interessen', detail: 'Kaffee, Fotografie, Reisen' },
+  { icon: '📅', label: 'Ähnliches Alter', detail: 'Nur 1 Jahr Unterschied' },
 ];
 
 function getTimeUntilMidnight(): { h: number; m: number; s: number } {
@@ -41,6 +41,7 @@ export default function DailyMatchPage() {
   const [messageSent, setMessageSent] = useState(false);
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string }[]>([]);
   const [superLiked, setSuperLiked] = useState(false);
+  const [declined, setDeclined] = useState(false);
 
   useEffect(() => {
     const iv = setInterval(() => setCountdown(getTimeUntilMidnight()), 1000);
@@ -80,10 +81,10 @@ export default function DailyMatchPage() {
         </button>
         <div className="text-center">
           <h1 className="text-lg font-bold text-white" style={{ fontFamily: 'Syne, Inter, sans-serif' }}>
-            Today&apos;s Match ✦
+            Tages-Match ✦
           </h1>
           <p className="text-xs text-white/40 mt-0.5">
-            refreshes in {pad(countdown.h)}h {pad(countdown.m)}m
+            aktualisiert in {pad(countdown.h)}h {pad(countdown.m)}m
           </p>
         </div>
         <div className="w-9" />
@@ -153,61 +154,149 @@ export default function DailyMatchPage() {
         <div className="card-glass rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <Target size={16} className="text-purple-400" />
-            <h3 className="text-sm font-semibold text-white/80">Why you match</h3>
+            <h3 className="text-sm font-semibold text-white/80">Warum ihr passt</h3>
           </div>
           <div className="space-y-2">
-            {MATCH_REASONS.map((r) => (
-              <div key={r.label} className="flex items-center gap-3 py-1.5">
-                <span className="text-xl w-8 text-center">{r.icon}</span>
-                <div>
-                  <p className="text-sm font-medium text-white">{r.label}</p>
-                  <p className="text-xs text-white/50">{r.detail}</p>
+            {MATCH_REASONS.map((r, index) => (
+              <motion.div
+                key={r.label}
+                initial={{ opacity: 0, x: -32 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 + index * 0.15, type: 'spring', stiffness: 240, damping: 18 }}
+                className="flex items-center gap-3 py-2 px-3 rounded-xl"
+                style={{ background: 'rgba(147,51,234,0.06)', border: '1px solid rgba(147,51,234,0.12)' }}
+              >
+                <motion.span
+                  initial={{ scale: 0, rotate: -20 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: 0.2 + index * 0.15, type: 'spring', stiffness: 320, damping: 14 }}
+                  className="text-xl w-8 text-center flex-shrink-0"
+                >
+                  {r.icon}
+                </motion.span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white">{r.label}</p>
+                  <p className="text-xs text-white/50 truncate">{r.detail}</p>
                 </div>
-              </div>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3 + index * 0.15, type: 'spring', stiffness: 400, damping: 16 }}
+                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(74,222,128,0.2)' }}
+                >
+                  <span className="text-[10px] text-green-400 font-bold">✓</span>
+                </motion.div>
+              </motion.div>
             ))}
           </div>
         </div>
 
         {/* Countdown banner */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
           className="rounded-2xl p-4 flex items-center justify-between"
           style={{ background: 'rgba(147,51,234,0.12)', border: '1px solid rgba(147,51,234,0.25)' }}
         >
-          <div>
-            <p className="text-xs text-white/50 font-medium">Next match in</p>
-            <p className="text-2xl font-bold text-white font-mono">
-              {pad(countdown.h)}:{pad(countdown.m)}:{pad(countdown.s)}
-            </p>
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(147,51,234,0.2)' }}
+            >
+              <Clock size={18} className="text-purple-400" />
+            </div>
+            <div>
+              <p className="text-xs text-white/50 font-medium">Nächstes Match in</p>
+              <p className="text-2xl font-bold text-white font-mono tracking-wider">
+                {pad(countdown.h)}:{pad(countdown.m)}:{pad(countdown.s)}
+              </p>
+            </div>
           </div>
-          <Sparkles size={28} className="text-purple-400" />
-        </div>
-
-        {/* CTAs */}
-        <div className="grid grid-cols-2 gap-3 pb-2">
-          <motion.button
-            whileTap={{ scale: 0.96 }}
-            onClick={() => setShowMessageSheet(true)}
-            className="py-4 rounded-2xl font-semibold text-white gradient-brand glow-button flex items-center justify-center gap-2"
+          <motion.div
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
           >
-            <Send size={16} />
-            Send Message
-          </motion.button>
+            <Sparkles size={28} className="text-purple-400" />
+          </motion.div>
+        </motion.div>
+
+        {/* CTAs — Accept / Decline */}
+        <div className="grid grid-cols-2 gap-3 pb-2">
+          {/* Accept / Nachricht senden */}
           <motion.button
-            whileTap={{ scale: 0.96 }}
-            onClick={() => setSuperLiked(true)}
-            className="py-4 rounded-2xl font-semibold flex items-center justify-center gap-2"
+            whileHover={{
+              scale: 1.05,
+              boxShadow: '0 0 40px rgba(244,63,142,0.6)',
+              y: -2,
+            }}
+            whileTap={{ scale: 0.92, boxShadow: '0 0 20px rgba(244,63,142,0.3)' }}
+            transition={{ type: 'spring', stiffness: 420, damping: 15 }}
+            onClick={() => setShowMessageSheet(true)}
+            className="py-4 rounded-2xl font-semibold text-white gradient-brand glow-button flex items-center justify-center gap-2 relative overflow-hidden"
+          >
+            <motion.div
+              className="absolute inset-0 rounded-2xl opacity-0"
+              whileHover={{ opacity: 1 }}
+              style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%)' }}
+            />
+            <Send size={16} />
+            <span>Annehmen</span>
+          </motion.button>
+
+          {/* Ablehnen */}
+          <motion.button
+            whileHover={{
+              scale: 1.05,
+              boxShadow: '0 0 30px rgba(239,68,68,0.35)',
+              y: -2,
+            }}
+            whileTap={{ scale: 0.92, rotate: [-4, 4, 0] }}
+            transition={{ type: 'spring', stiffness: 420, damping: 15 }}
+            onClick={() => setDeclined(!declined)}
+            className="py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 relative overflow-hidden"
             style={{
-              background: superLiked
-                ? 'rgba(234,179,8,0.2)'
-                : 'rgba(234,179,8,0.1)',
-              border: '2px solid rgba(234,179,8,0.4)',
-              color: '#facc15',
+              background: declined ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.06)',
+              border: `2px solid ${declined ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.12)'}`,
+              color: declined ? '#f87171' : 'rgba(255,255,255,0.6)',
             }}
           >
-            <Star size={16} className={superLiked ? 'fill-yellow-400' : ''} />
-            {superLiked ? 'Super Liked!' : 'Super Like'}
+            <motion.div
+              animate={declined ? { rotate: [0, -10, 10, 0], scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 0.4 }}
+            >
+              <X size={16} />
+            </motion.div>
+            <span>{declined ? 'Abgelehnt' : 'Ablehnen'}</span>
           </motion.button>
         </div>
+
+        {/* Super Like */}
+        <motion.button
+          whileHover={{
+            scale: 1.03,
+            boxShadow: superLiked ? '0 0 40px rgba(234,179,8,0.7)' : '0 0 25px rgba(234,179,8,0.4)',
+            y: -1,
+          }}
+          whileTap={{ scale: 0.94 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 15 }}
+          onClick={() => setSuperLiked(true)}
+          className="w-full py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 relative overflow-hidden"
+          style={{
+            background: superLiked ? 'rgba(234,179,8,0.2)' : 'rgba(234,179,8,0.08)',
+            border: `2px solid ${superLiked ? 'rgba(234,179,8,0.6)' : 'rgba(234,179,8,0.3)'}`,
+            color: '#facc15',
+          }}
+        >
+          <motion.div
+            animate={superLiked ? { rotate: [0, -15, 15, -8, 8, 0], scale: [1, 1.4, 1] } : {}}
+            transition={{ duration: 0.6 }}
+          >
+            <Star size={18} className={superLiked ? 'fill-yellow-400' : ''} />
+          </motion.div>
+          {superLiked ? '⭐ Super Geliked!' : 'Super Like senden'}
+        </motion.button>
       </div>
 
       {/* Message Sheet */}
@@ -253,17 +342,17 @@ export default function DailyMatchPage() {
                     💌
                   </motion.div>
                   <h3 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'Syne, Inter, sans-serif' }}>
-                    Message Sent!
+                    Nachricht gesendet!
                   </h3>
                   <p className="text-white/50 text-sm text-center">
-                    {DAILY_MATCH.name} will be notified. Fingers crossed! 🤞
+                    {DAILY_MATCH.name} wird benachrichtigt. Drück die Daumen! 🤞
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Syne, Inter, sans-serif' }}>
-                      Message {DAILY_MATCH.name} 💌
+                      {DAILY_MATCH.name} schreiben 💌
                     </h3>
                     <button onClick={() => setShowMessageSheet(false)}>
                       <X size={20} className="text-white/50" />
@@ -272,7 +361,7 @@ export default function DailyMatchPage() {
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder={`Say something to ${DAILY_MATCH.name}…`}
+                    placeholder={`Schreib etwas an ${DAILY_MATCH.name}…`}
                     rows={4}
                     className="w-full rounded-2xl p-4 text-white text-sm resize-none placeholder:text-white/30 mb-4"
                     style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -284,7 +373,7 @@ export default function DailyMatchPage() {
                     className="w-full py-4 rounded-2xl font-semibold text-white gradient-brand glow-button disabled:opacity-40 flex items-center justify-center gap-2"
                   >
                     <Send size={16} />
-                    Send First Message
+                    Erste Nachricht senden
                   </motion.button>
                 </>
               )}
@@ -298,7 +387,7 @@ export default function DailyMatchPage() {
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center"
           style={{ backdropFilter: 'blur(20px)', background: 'rgba(7,6,15,0.6)' }}>
           <Lock size={48} className="text-white/30 mb-4" />
-          <p className="text-white/50 text-sm">Come back tomorrow for your next match</p>
+          <p className="text-white/50 text-sm">Komm morgen zurück für dein nächstes Match</p>
         </div>
       )}
 

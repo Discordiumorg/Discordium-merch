@@ -45,6 +45,13 @@ const defaultFilters: Filters = {
 const allGoals: RelationshipGoal[] = ['casual', 'serious', 'friends+', 'open relationship', 'not sure yet'];
 const genderOptions = ['male', 'female', 'non-binary', 'other'];
 
+const genderLabels: Record<string, string> = {
+  male: 'Männer',
+  female: 'Frauen',
+  'non-binary': 'Non-binary',
+  other: 'Andere',
+};
+
 export default function BrowsePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -147,12 +154,12 @@ export default function BrowsePage() {
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-white font-black text-xl">Browse</h1>
+            <h1 className="text-white font-black text-xl">Entdecken</h1>
             <button
               onClick={() => router.push('/polls')}
               className="text-xs font-bold px-3 py-1.5 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30 transition-colors"
             >
-              Polls 🗳️
+              Umfragen 🗳️
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -164,15 +171,15 @@ export default function BrowsePage() {
                   ? 'gradient-brand text-white border-transparent'
                   : 'bg-white/10 border-white/20 text-white/70 hover:text-white'
               }`}
-              title="Match Game"
+              title="Match-Spiel"
             >
-              {viewMode === 'matchgame' ? '🔲 Grid' : '🎯 Match Game'}
+              {viewMode === 'matchgame' ? '🔲 Raster' : '🎯 Match-Spiel'}
             </button>
             {/* Radar map pin */}
             <button
               onClick={() => router.push('/radar')}
               className="w-9 h-9 card-glass rounded-xl flex items-center justify-center text-purple-400 hover:text-purple-300 transition-colors border border-purple-500/30"
-              title="Open Radar"
+              title="Radar öffnen"
             >
               <Navigation size={16} />
             </button>
@@ -183,9 +190,9 @@ export default function BrowsePage() {
                 onChange={(e) => setSortBy(e.target.value as SortBy)}
                 className="appearance-none bg-white/10 border border-white/20 text-white text-xs font-medium px-3 py-2 pr-7 rounded-xl focus:outline-none focus:border-purple-500 cursor-pointer"
               >
-                <option value="distance" className="bg-brand-card">Nearest</option>
-                <option value="newest" className="bg-brand-card">Newest</option>
-                <option value="popular" className="bg-brand-card">Popular</option>
+                <option value="distance" className="bg-brand-card">Nächste</option>
+                <option value="newest" className="bg-brand-card">Neueste</option>
+                <option value="popular" className="bg-brand-card">Beliebt</option>
               </select>
               <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none" />
             </div>
@@ -200,7 +207,7 @@ export default function BrowsePage() {
               }`}
             >
               <SlidersHorizontal size={14} />
-              Filters
+              Filter
               {activeFilterCount > 0 && (
                 <span className="w-4 h-4 bg-white text-purple-700 text-[9px] font-black rounded-full flex items-center justify-center">
                   {activeFilterCount}
@@ -217,7 +224,7 @@ export default function BrowsePage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name..."
+            placeholder="Nach Namen suchen..."
             className="w-full bg-white/10 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
           />
           {searchQuery && (
@@ -248,14 +255,14 @@ export default function BrowsePage() {
             )}
             {(activeFilters.minAge !== 18 || activeFilters.maxAge !== 50) && (
               <span className="flex-shrink-0 inline-flex items-center text-[10px] font-semibold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                {activeFilters.minAge}–{activeFilters.maxAge}y
+                {activeFilters.minAge}–{activeFilters.maxAge} J.
               </span>
             )}
             <button
               onClick={resetFilters}
               className="flex-shrink-0 text-[10px] text-white/50 hover:text-white/80 px-2"
             >
-              Clear all
+              Alle löschen
             </button>
           </div>
         )}
@@ -272,21 +279,21 @@ export default function BrowsePage() {
         >
           <div className="flex items-center justify-between mb-2">
             <p className="text-white font-bold text-sm">
-              <span className="text-pink-400">3 people</span> liked you
+              <span className="text-pink-400">3 Personen</span> haben dich geliked
             </p>
-            <span className="text-xs text-purple-400 font-semibold">See who →</span>
+            <span className="text-xs text-purple-400 font-semibold">Wer ist es? →</span>
           </div>
           <div className="flex gap-2">
             {['likedyou1', 'likedyou2', 'likedyou3'].map((seed) => (
               <div key={seed} className="relative w-16 h-20 rounded-xl overflow-hidden flex-shrink-0">
                 <img
                   src={`https://picsum.photos/seed/${seed}/200/250`}
-                  alt="Liked you"
+                  alt="Hat dich geliked"
                   className="w-full h-full object-cover blur-md scale-110"
                 />
                 <div className="absolute inset-0 bg-black/30 flex items-end justify-center pb-1">
                   <span className="text-white text-[10px] font-bold bg-pink-500/80 backdrop-blur-sm rounded-full px-1.5 py-0.5">
-                    👍 Liked you
+                    👍 Mag dich
                   </span>
                 </div>
               </div>
@@ -299,7 +306,7 @@ export default function BrowsePage() {
       {viewMode === 'grid' && (
         <div className="px-5 py-3">
           <p className="text-white/40 text-xs">
-            {filteredUsers.length} {filteredUsers.length === 1 ? 'person' : 'people'} nearby
+            {filteredUsers.length} {filteredUsers.length === 1 ? 'Person' : 'Personen'} in der Nähe
           </p>
         </div>
       )}
@@ -314,7 +321,7 @@ export default function BrowsePage() {
               animate={{ opacity: 1, y: 0 }}
               className="card-glass rounded-2xl px-4 py-2.5 flex items-center justify-center gap-2 border border-purple-500/20 mb-4"
             >
-              <span className="text-purple-300 text-sm font-bold">{matchGameCount} new matches from Match Game 🎉</span>
+              <span className="text-purple-300 text-sm font-bold">{matchGameCount} neue Matches aus dem Match-Spiel 🎉</span>
             </motion.div>
           )}
 
@@ -442,12 +449,12 @@ export default function BrowsePage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="text-5xl mb-4">🔍</div>
-              <p className="text-white/60 font-medium">No profiles match your filters</p>
+              <p className="text-white/60 font-medium">Keine Profile gefunden</p>
               <button
                 onClick={resetFilters}
                 className="mt-4 text-purple-400 text-sm font-semibold hover:text-purple-300"
               >
-                Clear filters
+                Filter löschen
               </button>
             </div>
           )}
@@ -481,26 +488,26 @@ export default function BrowsePage() {
 
               <div className="px-5 pb-6 overflow-y-auto max-h-[80vh]">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-white font-bold text-lg">Filters</h2>
+                  <h2 className="text-white font-bold text-lg">Filter</h2>
                   <button
                     onClick={resetFilters}
                     className="text-purple-400 text-sm font-semibold hover:text-purple-300"
                   >
-                    Reset
+                    Zurücksetzen
                   </button>
                 </div>
 
                 {/* Age range */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-white font-semibold text-sm">Age Range</h3>
+                    <h3 className="text-white font-semibold text-sm">Altersbereich</h3>
                     <span className="text-purple-400 text-sm font-medium">
                       {filters.minAge} – {filters.maxAge}
                     </span>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-white/50 text-xs mb-1 block">Minimum age</label>
+                      <label className="text-white/50 text-xs mb-1 block">Mindestalter</label>
                       <input
                         type="range"
                         min="18"
@@ -511,7 +518,7 @@ export default function BrowsePage() {
                       />
                     </div>
                     <div>
-                      <label className="text-white/50 text-xs mb-1 block">Maximum age</label>
+                      <label className="text-white/50 text-xs mb-1 block">Höchstalter</label>
                       <input
                         type="range"
                         min={filters.minAge + 1}
@@ -529,7 +536,7 @@ export default function BrowsePage() {
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-white font-semibold text-sm flex items-center gap-1.5">
                       <MapPin size={14} className="text-purple-400" />
-                      Max Distance
+                      Max. Entfernung
                     </h3>
                     <span className="text-purple-400 text-sm font-medium">{filters.maxDistance} km</span>
                   </div>
@@ -545,7 +552,7 @@ export default function BrowsePage() {
 
                 {/* Looking for */}
                 <div className="mb-6">
-                  <h3 className="text-white font-semibold text-sm mb-3">Looking For</h3>
+                  <h3 className="text-white font-semibold text-sm mb-3">Ich suche</h3>
                   <div className="flex flex-wrap gap-2">
                     {allGoals.map((goal) => (
                       <button
@@ -566,7 +573,7 @@ export default function BrowsePage() {
 
                 {/* Gender */}
                 <div className="mb-6">
-                  <h3 className="text-white font-semibold text-sm mb-3">Show Me</h3>
+                  <h3 className="text-white font-semibold text-sm mb-3">Anzeigen</h3>
                   <div className="flex flex-wrap gap-2">
                     {genderOptions.map((gender) => (
                       <button
@@ -578,7 +585,7 @@ export default function BrowsePage() {
                             : 'bg-white/5 border-white/15 text-white/60 hover:border-white/30'
                         }`}
                       >
-                        {gender === 'male' ? 'Men' : gender === 'female' ? 'Women' : gender}
+                        {genderLabels[gender] ?? gender}
                       </button>
                     ))}
                   </div>
@@ -588,8 +595,8 @@ export default function BrowsePage() {
                 <div className="mb-6">
                   <div className="flex items-center justify-between py-3 border-t border-white/10">
                     <div>
-                      <h3 className="text-white font-semibold text-sm">Online Now Only</h3>
-                      <p className="text-white/40 text-xs mt-0.5">Show only currently active users</p>
+                      <h3 className="text-white font-semibold text-sm">Nur Online</h3>
+                      <p className="text-white/40 text-xs mt-0.5">Nur gerade aktive Nutzer anzeigen</p>
                     </div>
                     <button
                       onClick={() => setFilters((p) => ({ ...p, onlineOnly: !p.onlineOnly }))}
@@ -610,7 +617,7 @@ export default function BrowsePage() {
                   onClick={applyFilters}
                   className="w-full gradient-brand text-white font-bold py-4 rounded-2xl glow-purple hover:opacity-90 transition-opacity"
                 >
-                  Show {filteredUsers.length} Results
+                  {filteredUsers.length} Ergebnisse anzeigen
                 </button>
               </div>
             </motion.div>
@@ -646,9 +653,9 @@ export default function BrowsePage() {
               <div className="w-16 h-16 gradient-brand rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Lock size={28} className="text-white" />
               </div>
-              <h2 className="text-white font-black text-xl mb-2">See who liked you!</h2>
+              <h2 className="text-white font-black text-xl mb-2">Wer hat dich geliked?</h2>
               <p className="text-white/60 text-sm mb-5 leading-relaxed">
-                3 people have already liked your profile. Upgrade to Premium to find out who they are and match instantly.
+                3 Personen haben dein Profil bereits geliked. Upgrade auf Premium, um zu erfahren wer sie sind und sofort zu matchen.
               </p>
 
               {/* Blurred preview */}
@@ -671,13 +678,13 @@ export default function BrowsePage() {
                 onClick={() => { setShowLikedYouModal(false); router.push('/premium'); }}
                 className="w-full gradient-brand text-white font-black py-3 rounded-2xl mb-3 hover:opacity-90 transition-opacity"
               >
-                Upgrade to Premium ✨
+                Auf Premium upgraden ✨
               </button>
               <button
                 onClick={() => setShowLikedYouModal(false)}
                 className="w-full text-white/40 text-sm font-medium"
               >
-                Maybe later
+                Vielleicht später
               </button>
             </motion.div>
           </motion.div>

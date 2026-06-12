@@ -32,7 +32,7 @@ export default function StoriesPage() {
 
       <div className="px-4 pb-28 pt-5">
         {/* Your Story */}
-        <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3">Your Story</p>
+        <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3">Meine Story</p>
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -44,14 +44,19 @@ export default function StoriesPage() {
               <Plus size={24} className="text-white" />
             </div>
           </div>
-          <div className="text-left">
-            <p className="text-white font-semibold">Add to Your Story</p>
-            <p className="text-white/50 text-xs mt-0.5">Share a moment — visible for 24 hours</p>
+          <div className="text-left flex items-center gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-white font-semibold">Story erstellen</p>
+                <span className="bg-pink-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none">Neu</span>
+              </div>
+              <p className="text-white/50 text-xs mt-0.5">Teile einen Moment — sichtbar für 24 Stunden</p>
+            </div>
           </div>
         </motion.button>
 
         {/* All Stories */}
-        <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3">All Stories</p>
+        <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3">Alle Stories</p>
         <div className="grid grid-cols-2 gap-3">
           {mockStories.map((story, i) => (
             <motion.button

@@ -60,14 +60,14 @@ function CampaignCard({ c }: { c: Campaign }) {
         <p className="text-white/60 text-xs leading-snug">{c.description}</p>
         {!isExpired && <CountdownBadge endsAt={c.endsAt} />}
         {isExpired && (
-          <span className="text-red-400 text-xs font-semibold">Expired</span>
+          <span className="text-red-400 text-xs font-semibold">Abgelaufen</span>
         )}
         {!isExpired && (
           <button
             onClick={() => router.push('/shop')}
             className={`w-full py-2 rounded-xl text-xs font-black text-white bg-gradient-to-r ${c.color} flex items-center justify-center gap-1 mt-1`}
           >
-            Shop Now <ChevronRight size={12} />
+            Jetzt kaufen <ChevronRight size={12} />
           </button>
         )}
       </div>
@@ -90,7 +90,7 @@ function CouponCard({ code }: { code: PromoCode }) {
             ? 'bg-red-500/10 text-red-400 border border-red-500/20'
             : 'bg-green-500/20 text-green-400 border border-green-500/30'
         }`}>
-          {isExpired ? 'Expired' : code.type === 'percent' ? `-${code.discount}%` : `${code.discount} coins`}
+          {isExpired ? 'Abgelaufen' : code.type === 'percent' ? `-${code.discount}%` : `${code.discount} Coins`}
         </span>
       </div>
       <p className="text-white/50 text-xs">{code.description}</p>
@@ -100,7 +100,7 @@ function CouponCard({ code }: { code: PromoCode }) {
             <span className="text-white/30 text-[10px]">Min €{code.minPurchase}</span>
           )}
           <span className="text-white/30 text-[10px] ml-auto">
-            Expires: {code.expiresAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            Läuft ab: {code.expiresAt.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
           </span>
         </div>
       )}
@@ -173,7 +173,7 @@ export default function DiscountsPage() {
           </button>
           <div className="flex items-center gap-2">
             <Tag size={20} className="text-purple-400" />
-            <h1 className="text-white font-black text-xl">Deals & Discounts 🏷️</h1>
+            <h1 className="text-white font-black text-xl">Deals & Rabatte 🏷️</h1>
           </div>
         </div>
       </div>
@@ -188,8 +188,8 @@ export default function DiscountsPage() {
         >
           <div className="text-4xl">💰</div>
           <div>
-            <p className="text-white font-black text-lg">You&apos;ve saved €8.50</p>
-            <p className="text-white/70 text-sm">this month through deals & discounts</p>
+            <p className="text-white font-black text-lg">Du hast €8,50 gespart</p>
+            <p className="text-white/70 text-sm">diesen Monat durch Deals & Rabatte</p>
           </div>
         </motion.div>
 
@@ -197,10 +197,10 @@ export default function DiscountsPage() {
         <div>
           <h2 className="text-white font-black text-base mb-3 flex items-center gap-2">
             <TrendingUp size={16} className="text-orange-400" />
-            Active Campaigns
+            Aktive Kampagnen
           </h2>
           {activeCampaigns.length === 0 ? (
-            <p className="text-white/40 text-sm">No active campaigns right now. Check back soon!</p>
+            <p className="text-white/40 text-sm">Gerade keine aktiven Kampagnen. Schau bald wieder vorbei!</p>
           ) : (
             <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
               {activeCampaigns.map((c) => (
@@ -222,7 +222,7 @@ export default function DiscountsPage() {
         <div>
           <h2 className="text-white font-black text-base mb-3 flex items-center gap-2">
             <Gift size={16} className="text-pink-400" />
-            Promo Code
+            Aktionscode
           </h2>
           <motion.div
             animate={shake ? { x: [-8, 8, -6, 6, -4, 4, 0] } : { x: 0 }}
@@ -235,7 +235,7 @@ export default function DiscountsPage() {
               value={codeInput}
               onChange={(e) => { setCodeInput(e.target.value.toUpperCase()); setCodeStatus('idle'); }}
               onKeyDown={(e) => e.key === 'Enter' && applyCode()}
-              placeholder="Enter code (e.g. SUMMER25)"
+              placeholder="Code eingeben (z.B. SUMMER25)"
               className={`flex-1 bg-white/10 border rounded-xl px-4 py-3 text-white font-mono text-sm placeholder:text-white/30 focus:outline-none transition-colors ${
                 codeStatus === 'success'
                   ? 'border-green-500/60'
@@ -249,7 +249,7 @@ export default function DiscountsPage() {
               onClick={applyCode}
               className="gradient-brand text-white font-black px-5 py-3 rounded-xl shadow-lg text-sm"
             >
-              Apply
+              Einlösen
             </motion.button>
           </motion.div>
 
@@ -263,8 +263,8 @@ export default function DiscountsPage() {
               >
                 <Check size={15} />
                 {appliedCode.type === 'percent'
-                  ? `${appliedCode.discount}% off applied!`
-                  : `${appliedCode.discount} coins added!`}
+                  ? `${appliedCode.discount}% Rabatt aktiviert!`
+                  : `${appliedCode.discount} Coins gutgeschrieben!`}
                 {' '}{appliedCode.description.split('–')[0]}
               </motion.div>
             )}
@@ -276,7 +276,7 @@ export default function DiscountsPage() {
                 className="mt-2 flex items-center gap-2 text-red-400 text-sm font-semibold"
               >
                 <X size={15} />
-                Invalid code. Please check and try again.
+                Ungültiger Code. Bitte prüfe ihn und versuche es erneut.
               </motion.div>
             )}
             {codeStatus === 'expired' && (
@@ -287,7 +287,7 @@ export default function DiscountsPage() {
                 className="mt-2 flex items-center gap-2 text-orange-400 text-sm font-semibold"
               >
                 <Clock size={15} />
-                This code has expired.
+                Dieser Code ist abgelaufen.
               </motion.div>
             )}
           </AnimatePresence>
@@ -297,7 +297,7 @@ export default function DiscountsPage() {
         {myCoupons.length > 0 && (
           <div>
             <h2 className="text-white font-black text-base mb-3 flex items-center gap-2">
-              🎫 My Coupons
+              🎫 Meine Gutscheine
             </h2>
             <div className="space-y-3">
               {myCoupons.map((c) => (
@@ -309,7 +309,7 @@ export default function DiscountsPage() {
 
         {/* ── All available codes (hint) ── */}
         <div>
-          <h2 className="text-white font-black text-base mb-3">Available Codes</h2>
+          <h2 className="text-white font-black text-base mb-3">Verfügbare Codes</h2>
           <div className="space-y-3">
             {promoCodes.map((c) => (
               <CouponCard key={c.code} code={c} />
@@ -320,7 +320,7 @@ export default function DiscountsPage() {
         {/* ── Loyalty Program ── */}
         <div>
           <h2 className="text-white font-black text-base mb-3 flex items-center gap-2">
-            <span>👑</span> Loyalty Program
+            <span>👑</span> Treueprogramm
           </h2>
 
           {/* Current tier display */}
@@ -331,19 +331,19 @@ export default function DiscountsPage() {
           >
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-white/80 text-xs uppercase tracking-wider font-semibold">Your Tier</p>
+                <p className="text-white/80 text-xs uppercase tracking-wider font-semibold">Deine Stufe</p>
                 <p className="text-white font-black text-2xl">{currentTier.emoji} {currentTier.name}</p>
               </div>
               <div className="text-right">
-                <p className="text-white/80 text-xs">Total spent</p>
+                <p className="text-white/80 text-xs">Gesamtausgaben</p>
                 <p className="text-white font-black text-xl">€{currentSpend}</p>
               </div>
             </div>
             {nextTier && (
               <>
                 <div className="flex justify-between text-xs text-white/70 mb-1">
-                  <span>€{currentSpend} spent</span>
-                  <span>€{nextTier.minSpend} for {nextTier.name}</span>
+                  <span>€{currentSpend} ausgegeben</span>
+                  <span>€{nextTier.minSpend} für {nextTier.name}</span>
                 </div>
                 <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                   <motion.div
@@ -354,7 +354,7 @@ export default function DiscountsPage() {
                   />
                 </div>
                 <p className="text-white/70 text-xs mt-1">
-                  €{nextTier.minSpend - currentSpend} more to reach {nextTier.emoji} {nextTier.name}
+                  Noch €{nextTier.minSpend - currentSpend} bis {nextTier.emoji} {nextTier.name}
                 </p>
               </>
             )}
@@ -395,12 +395,12 @@ export default function DiscountsPage() {
                       <span className="text-2xl">{tier.emoji}</span>
                       <span className="text-white font-black">{tier.name}</span>
                       {isCurrent && (
-                        <span className="bg-white/20 text-white text-[9px] font-black px-2 py-0.5 rounded-full">Current</span>
+                        <span className="bg-white/20 text-white text-[9px] font-black px-2 py-0.5 rounded-full">Aktuell</span>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-white/80 text-xs">From €{tier.minSpend}</p>
-                      <p className="text-white font-bold text-sm">{tier.discount > 0 ? `${tier.discount}% off` : 'Base'}</p>
+                      <p className="text-white/80 text-xs">Ab €{tier.minSpend}</p>
+                      <p className="text-white font-bold text-sm">{tier.discount > 0 ? `${tier.discount}% Rabatt` : 'Basis'}</p>
                     </div>
                   </div>
                   <div className="p-4">
@@ -429,12 +429,12 @@ export default function DiscountsPage() {
         {/* ── How to earn ── */}
         <div className="card-glass rounded-2xl p-4">
           <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
-            💡 How to Earn
+            💡 So sammelst du Punkte
           </h3>
           {[
-            { icon: '🛒', label: 'Make purchases', desc: 'Every euro spent counts toward your tier' },
-            { icon: '👥', label: 'Invite friends', desc: 'Earn bonus coins for every friend who joins' },
-            { icon: '📅', label: 'Daily login', desc: 'Claim your daily free reward every day' },
+            { icon: '🛒', label: 'Einkäufe tätigen', desc: 'Jeder ausgegebene Euro zählt für deine Stufe' },
+            { icon: '👥', label: 'Freunde einladen', desc: 'Erhalte Bonus-Coins für jeden Freund, der beitritt' },
+            { icon: '📅', label: 'Täglich einloggen', desc: 'Hol dir jeden Tag deine kostenlose Tagesbelohnung' },
           ].map((item) => (
             <div key={item.label} className="flex items-start gap-3 mb-3 last:mb-0">
               <span className="text-xl flex-shrink-0">{item.icon}</span>
@@ -454,8 +454,8 @@ export default function DiscountsPage() {
         >
           <div className="text-3xl flex-shrink-0">🎁</div>
           <div className="flex-1">
-            <p className="text-white font-bold text-sm">Invite Friends</p>
-            <p className="text-white/50 text-xs mt-0.5">Earn coins & unlock exclusive rewards</p>
+            <p className="text-white font-bold text-sm">Freunde einladen</p>
+            <p className="text-white/50 text-xs mt-0.5">Coins verdienen & exklusive Belohnungen freischalten</p>
           </div>
           <ChevronRight size={16} className="text-white/30 flex-shrink-0" />
         </motion.div>

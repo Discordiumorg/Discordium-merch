@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, ArrowLeft, ArrowRight, Phone, Mail, ChevronDown, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { AuraLogomark } from '@/components/AuraLogo';
+import { useI18n } from '@/lib/i18n';
 
 type AuthMode = 'landing' | 'auth' | 'email' | 'phone' | 'otp';
 type AuthIntent = 'login' | 'register';
@@ -51,16 +52,16 @@ function AppleIcon() {
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const COUNTRY_CODES = [
-  { code: '+49', flag: '🇩🇪', name: 'Germany' },
+  { code: '+49', flag: '🇩🇪', name: 'Deutschland' },
   { code: '+1',  flag: '🇺🇸', name: 'USA' },
   { code: '+44', flag: '🇬🇧', name: 'UK' },
-  { code: '+33', flag: '🇫🇷', name: 'France' },
-  { code: '+34', flag: '🇪🇸', name: 'Spain' },
-  { code: '+39', flag: '🇮🇹', name: 'Italy' },
+  { code: '+33', flag: '🇫🇷', name: 'Frankreich' },
+  { code: '+34', flag: '🇪🇸', name: 'Spanien' },
+  { code: '+39', flag: '🇮🇹', name: 'Italien' },
   { code: '+351',flag: '🇵🇹', name: 'Portugal' },
-  { code: '+90', flag: '🇹🇷', name: 'Turkey' },
-  { code: '+41', flag: '🇨🇭', name: 'Switzerland' },
-  { code: '+43', flag: '🇦🇹', name: 'Austria' },
+  { code: '+90', flag: '🇹🇷', name: 'Türkei' },
+  { code: '+41', flag: '🇨🇭', name: 'Schweiz' },
+  { code: '+43', flag: '🇦🇹', name: 'Österreich' },
 ];
 
 const SOCIAL_PROVIDERS = [
@@ -70,11 +71,7 @@ const SOCIAL_PROVIDERS = [
   { id: 'x',        label: 'X',        icon: XIcon,        bg: 'bg-[#111]',       text: 'text-white',    border: 'border-white/10' },
 ];
 
-const STATS = [
-  { value: '2.4M+', label: 'Users', emoji: '👥' },
-  { value: '840K',  label: 'Matches', emoji: '💞' },
-  { value: '4.9★',  label: 'Rating', emoji: '⭐' },
-];
+// STATS labels are now i18n-aware; see stats array inside component
 
 const FLOATING_SEEDS = ['aura1','aura2','aura3','aura4','aura5','aura6'];
 
@@ -107,7 +104,7 @@ function Spinner({ size = 18, dark = false }: { size?: number; dark?: boolean })
     <motion.div
       animate={{ rotate: 360 }}
       transition={{ duration: 0.85, repeat: Infinity, ease: 'linear' }}
-      className={`rounded-full border-2 flex-shrink-0`}
+      className="rounded-full border-2 flex-shrink-0"
       style={{ width: size, height: size, borderColor: dark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.25)', borderTopColor: dark ? '#1a1a1a' : '#fff' }}
     />
   );
@@ -138,6 +135,12 @@ const INPUT_CLS = "w-full bg-white/6 border border-white/12 rounded-xl px-4 py-3
 
 export default function LandingPage() {
   const router = useRouter();
+  const { t } = useI18n();
+  const stats = [
+    { value: '2,4M+', label: t.landing.stats.users,   emoji: '👥' },
+    { value: '840T',  label: t.landing.stats.matches,  emoji: '💞' },
+    { value: '4,9★',  label: t.landing.stats.rating,   emoji: '⭐' },
+  ];
   const [mode, setMode] = useState<AuthMode>('landing');
   const [intent, setIntent] = useState<AuthIntent>('register');
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
@@ -179,25 +182,23 @@ export default function LandingPage() {
 
   const goAuth = (i: AuthIntent) => { setIntent(i); setMode('auth'); };
 
-  // Social provider login (OAuth placeholder — requires provider config)
   const handleSocial = async (providerId: string) => {
     setLoadingProvider(providerId);
     await new Promise((r) => setTimeout(r, 800));
     setLoadingProvider(null);
-    showToast(`${providerId.charAt(0).toUpperCase() + providerId.slice(1)} login coming soon`, 'error');
+    showToast(`${providerId.charAt(0).toUpperCase() + providerId.slice(1)}${t.landing.errors.socialComingSoon}`, 'error');
   };
 
-  // Email submit — calls real API
   const validateEmail = () => {
     const e: Record<string, string> = {};
-    if (!formData.email) e.email = 'Email required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Invalid email address';
-    if (!formData.password) e.password = 'Password required';
-    else if (formData.password.length < 6) e.password = 'Min. 6 characters';
+    if (!formData.email) e.email = t.landing.errors.emailRequired;
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = t.landing.errors.invalidEmail;
+    if (!formData.password) e.password = t.landing.errors.passwordRequired;
+    else if (formData.password.length < 6) e.password = t.landing.errors.passwordTooShort;
     if (intent === 'register') {
-      if (!formData.name.trim()) e.name = 'Name required';
-      if (!formData.age) e.age = 'Age required';
-      else if (parseInt(formData.age) < 18) e.age = 'Must be 18+';
+      if (!formData.name.trim()) e.name = t.landing.errors.nameRequired;
+      if (!formData.age) e.age = t.landing.errors.ageRequired;
+      else if (parseInt(formData.age) < 18) e.age = t.landing.errors.mustBe18;
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -216,19 +217,26 @@ export default function LandingPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(data.error ?? 'Something went wrong', 'error');
+        const errMap: Record<string, string> = {
+          'Invalid email or password': t.landing.errors.invalidCredentials,
+          'Email already registered': t.landing.errors.emailInUse,
+          'Missing required fields': t.landing.errors.missingFields,
+          'Password must be at least 6 characters': t.landing.errors.passwordTooShort,
+          'Must be 18 or older': t.landing.errors.mustBe18,
+          'Internal server error': t.landing.errors.serverError,
+        };
+        showToast(errMap[data.error] ?? data.error ?? t.landing.errors.serverError, 'error');
         return;
       }
-      showToast(intent === 'register' ? 'Account created!' : 'Welcome back!', 'success');
+      showToast(intent === 'register' ? t.landing.errors.accountCreated : t.landing.errors.welcomeBack, 'success');
       setTimeout(() => router.push(intent === 'register' ? '/onboarding' : '/dashboard'), 600);
     } catch {
-      showToast('Network error — please try again', 'error');
+      showToast(t.landing.errors.networkError, 'error');
     } finally {
       setEmailLoading(false);
     }
   };
 
-  // Phone submit (mock — SMS requires Twilio)
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneNumber.trim()) return;
@@ -238,7 +246,6 @@ export default function LandingPage() {
     setMode('otp');
   };
 
-  // OTP handling
   const handleOtpInput = (index: number, value: string) => {
     const digit = value.replace(/\D/g, '').slice(-1);
     const next = [...otpDigits];
@@ -262,20 +269,18 @@ export default function LandingPage() {
     else otpRefs.current[paste.length]?.focus();
   };
 
-  // Demo login — calls real API
   const handleDemoLogin = async () => {
     setLoadingProvider('demo');
     try {
       const res = await fetch('/api/auth/demo', { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
-        showToast(data.error ?? 'Demo login failed', 'error');
+        showToast(data.error ?? t.landing.errors.demoFailed, 'error');
         return;
       }
-      showToast('Demo mode activated!', 'success');
+      showToast(t.landing.errors.demoActivated, 'success');
       setTimeout(() => router.push('/dashboard'), 500);
     } catch {
-      // Fallback: just redirect (DB may still be initialising)
       router.push('/dashboard');
     } finally {
       setLoadingProvider(null);
@@ -324,7 +329,7 @@ export default function LandingPage() {
                 style={{ background: 'linear-gradient(135deg, #e879f9 0%, #f9a8d4 45%, #fb7185 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 aura
               </h1>
-              <p className="text-white/35 text-xs font-semibold tracking-[0.25em] uppercase">Feel the Connection</p>
+              <p className="text-white/35 text-xs font-semibold tracking-[0.25em] uppercase">{t.landing.tagline}</p>
             </motion.div>
 
             {/* Floating avatar gallery */}
@@ -362,7 +367,7 @@ export default function LandingPage() {
             {/* Stats row */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
               className="flex gap-3 mb-8">
-              {STATS.map((s, i) => (
+              {stats.map((s, i) => (
                 <motion.div key={s.label}
                   initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.22 + i * 0.06 }}
                   className="flex-1 rounded-2xl px-3 py-3.5 text-center"
@@ -380,7 +385,7 @@ export default function LandingPage() {
             {/* Feature pills */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
               className="flex gap-2 flex-wrap justify-center mb-7">
-              {['AI Matching', 'Live Streaming', 'Video Dates', 'Stories', 'Safe & Private'].map((f) => (
+              {t.landing.features.map((f) => (
                 <span key={f} className="text-[11px] font-semibold text-white/45 bg-white/5 border border-white/8 px-3 py-1 rounded-full">
                   {f}
                 </span>
@@ -392,12 +397,12 @@ export default function LandingPage() {
               className="space-y-3">
               <motion.button whileTap={{ scale: 0.97 }} onClick={() => goAuth('register')}
                 className="w-full gradient-brand text-white font-bold py-4 rounded-2xl text-base glow-button flex items-center justify-center gap-2 shadow-lg">
-                Create Free Account <ArrowRight size={17} />
+                {t.landing.createAccount} <ArrowRight size={17} />
               </motion.button>
               <button onClick={() => goAuth('login')}
                 className="w-full text-white font-semibold py-3.5 rounded-2xl text-sm transition-colors"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                Sign In to Existing Account
+                {t.landing.signIn}
               </button>
               <motion.button
                 onClick={handleDemoLogin}
@@ -405,13 +410,13 @@ export default function LandingPage() {
                 whileTap={{ scale: 0.97 }}
                 className="w-full py-2.5 flex items-center justify-center gap-2 text-white/40 text-sm hover:text-white/65 transition-colors disabled:opacity-50">
                 {loadingProvider === 'demo'
-                  ? <><Spinner size={14} /> Loading demo…</>
-                  : <><Sparkles size={14} className="text-purple-400" /> Try Demo — no account needed</>}
+                  ? <><Spinner size={14} /> {t.landing.demoLoading}</>
+                  : <><Sparkles size={14} className="text-purple-400" /> {t.landing.tryDemo}</>}
               </motion.button>
             </motion.div>
 
             <p className="text-white/15 text-[10px] text-center mt-6 leading-relaxed">
-              18+ only · By continuing you agree to our Terms & Privacy Policy
+              {t.landing.ageDisclaimer}
             </p>
           </motion.div>
         )}
@@ -421,16 +426,16 @@ export default function LandingPage() {
           <motion.div key="auth" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
             className="min-h-screen flex flex-col px-6 pt-12 pb-10">
             <button onClick={() => setMode('landing')} className="flex items-center gap-1.5 text-white/40 hover:text-white text-sm mb-8 w-fit transition-colors">
-              <ArrowLeft size={15} /> Back
+              <ArrowLeft size={15} /> Zurück
             </button>
 
             <div className="mb-8">
               <AuraLogomark size={36} />
               <h2 className="text-3xl font-black text-white mt-4 mb-1.5 font-display">
-                {intent === 'register' ? 'Join Aura' : 'Welcome back'}
+                {intent === 'register' ? t.landing.joinAura : t.landing.welcomeBack}
               </h2>
               <p className="text-white/35 text-sm">
-                {intent === 'register' ? 'Create your free account' : 'Sign in to continue'}
+                {intent === 'register' ? t.landing.createFreeAccount : t.landing.signInToContinue}
               </p>
             </div>
 
@@ -453,7 +458,7 @@ export default function LandingPage() {
             {/* Divider */}
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 h-px bg-white/8" />
-              <span className="text-white/25 text-xs font-medium">or continue with</span>
+              <span className="text-white/25 text-xs font-medium">{t.landing.orContinueWith}</span>
               <div className="flex-1 h-px bg-white/8" />
             </div>
 
@@ -463,25 +468,25 @@ export default function LandingPage() {
                 className="w-full py-3.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-3 transition-all hover:border-purple-500/40"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
                 <Mail size={17} className="text-purple-400" />
-                Continue with Email
+                {t.landing.continueEmail}
               </motion.button>
               <motion.button whileTap={{ scale: 0.98 }} onClick={() => setMode('phone')}
                 className="w-full py-3.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-3 transition-all hover:border-pink-500/40"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
                 <Phone size={17} className="text-pink-400" />
-                Continue with Phone
+                {t.landing.continuePhone}
               </motion.button>
             </div>
 
             <div className="text-center">
-              <span className="text-white/30 text-sm">{intent === 'login' ? "New here? " : "Already have an account? "}</span>
+              <span className="text-white/30 text-sm">{intent === 'login' ? t.landing.noAccount : t.landing.alreadyHaveAccount}</span>
               <button onClick={() => setIntent(intent === 'login' ? 'register' : 'login')}
                 className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors">
-                {intent === 'login' ? 'Create account' : 'Sign in'}
+                {intent === 'login' ? t.landing.switchToSignUp : t.landing.switchToSignIn}
               </button>
             </div>
 
-            <p className="text-white/15 text-[10px] text-center mt-8">18+ only · Terms & Privacy Policy apply</p>
+            <p className="text-white/15 text-[10px] text-center mt-8">{t.landing.ageDisclaimer}</p>
           </motion.div>
         )}
 
@@ -490,7 +495,7 @@ export default function LandingPage() {
           <motion.div key="email" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
             className="min-h-screen flex flex-col px-6 pt-12 pb-10">
             <button onClick={() => setMode('auth')} className="flex items-center gap-1.5 text-white/40 hover:text-white text-sm mb-8 w-fit transition-colors">
-              <ArrowLeft size={15} /> Back
+              <ArrowLeft size={15} /> Zurück
             </button>
 
             <div className="mb-7">
@@ -499,52 +504,52 @@ export default function LandingPage() {
                 <Mail size={22} className="text-white" />
               </div>
               <h2 className="text-3xl font-black text-white mb-1.5 font-display">
-                {intent === 'login' ? 'Sign in' : 'Create account'}
+                {intent === 'login' ? t.landing.email.title : t.landing.email.titleRegister}
               </h2>
               <p className="text-white/35 text-sm">
-                {intent === 'login' ? 'Enter your credentials to continue' : 'Fill in your details to get started'}
+                {intent === 'login' ? t.landing.email.subtitle : t.landing.email.subtitleRegister}
               </p>
             </div>
 
             <form onSubmit={handleEmailSubmit} className="flex-1 space-y-4">
               {intent === 'register' && (
                 <>
-                  <Field label="Display Name" error={errors.name}>
+                  <Field label={t.landing.email.displayName} error={errors.name}>
                     <input type="text" value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="How should we call you?"
+                      placeholder={t.landing.email.namePlaceholder}
                       className={INPUT_CLS} />
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Age" error={errors.age}>
+                    <Field label={t.landing.email.age} error={errors.age}>
                       <input type="number" value={formData.age}
                         onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                         placeholder="18+" min="18" max="99"
                         className={INPUT_CLS} />
                     </Field>
-                    <Field label="I am">
+                    <Field label={t.landing.email.iAm}>
                       <select value={formData.gender}
                         onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                         className={INPUT_CLS}>
-                        <option value="female" className="bg-[#1a1730]">Woman</option>
-                        <option value="male" className="bg-[#1a1730]">Man</option>
-                        <option value="non-binary" className="bg-[#1a1730]">Non-binary</option>
-                        <option value="other" className="bg-[#1a1730]">Other</option>
+                        <option value="female" className="bg-[#1a1730]">{t.landing.email.woman}</option>
+                        <option value="male" className="bg-[#1a1730]">{t.landing.email.man}</option>
+                        <option value="non-binary" className="bg-[#1a1730]">{t.landing.email.nonBinary}</option>
+                        <option value="other" className="bg-[#1a1730]">{t.landing.email.other}</option>
                       </select>
                     </Field>
                   </div>
                 </>
               )}
 
-              <Field label="Email" error={errors.email}>
+              <Field label={t.landing.email.emailLabel} error={errors.email}>
                 <input type="email" value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="your@email.com"
+                  placeholder={t.landing.email.emailPlaceholder}
                   autoComplete="email"
                   className={INPUT_CLS} />
               </Field>
 
-              <Field label="Password" error={errors.password}>
+              <Field label={t.landing.email.password} error={errors.password}>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -564,7 +569,7 @@ export default function LandingPage() {
               {intent === 'login' && (
                 <div className="text-right -mt-1">
                   <button type="button" className="text-purple-400/65 text-xs hover:text-purple-300 transition-colors">
-                    Forgot password?
+                    {t.landing.email.forgotPassword}
                   </button>
                 </div>
               )}
@@ -573,17 +578,17 @@ export default function LandingPage() {
                 <motion.button type="submit" disabled={emailLoading} whileTap={{ scale: 0.97 }}
                   className="w-full gradient-brand text-white font-bold py-4 rounded-2xl text-base glow-button disabled:opacity-60 flex items-center justify-center gap-2.5 shadow-lg">
                   {emailLoading
-                    ? <><Spinner /> {intent === 'login' ? 'Signing in…' : 'Creating account…'}</>
-                    : <>{intent === 'login' ? 'Sign In' : 'Create Account'} <ArrowRight size={17} /></>}
+                    ? <><Spinner /> {intent === 'login' ? t.landing.email.signingIn : t.landing.email.creating}</>
+                    : <>{intent === 'login' ? t.landing.email.submit : t.landing.email.submitRegister} <ArrowRight size={17} /></>}
                 </motion.button>
               </div>
 
               <div className="text-center pt-1">
-                <span className="text-white/30 text-sm">{intent === 'login' ? "Don't have an account? " : 'Already registered? '}</span>
+                <span className="text-white/30 text-sm">{intent === 'login' ? t.landing.email.noAccountYet : t.landing.email.alreadyRegistered}</span>
                 <button type="button"
                   onClick={() => { setIntent(intent === 'login' ? 'register' : 'login'); setErrors({}); }}
                   className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors">
-                  {intent === 'login' ? 'Sign up free' : 'Sign in'}
+                  {intent === 'login' ? t.landing.email.signUpFree : t.landing.email.submit}
                 </button>
               </div>
 
@@ -592,7 +597,7 @@ export default function LandingPage() {
                 <button type="button" onClick={handleDemoLogin}
                   disabled={loadingProvider === 'demo'}
                   className="text-white/22 text-xs hover:text-white/40 transition-colors">
-                  Or try demo: demo@aura.app / demo123
+                  {t.landing.email.demoHint}
                 </button>
               </div>
             </form>
@@ -604,7 +609,7 @@ export default function LandingPage() {
           <motion.div key="phone" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
             className="min-h-screen flex flex-col px-6 pt-12 pb-10">
             <button onClick={() => setMode('auth')} className="flex items-center gap-1.5 text-white/40 hover:text-white text-sm mb-8 w-fit transition-colors">
-              <ArrowLeft size={15} /> Back
+              <ArrowLeft size={15} /> Zurück
             </button>
 
             <div className="mb-8">
@@ -612,14 +617,14 @@ export default function LandingPage() {
                 style={{ background: 'linear-gradient(135deg, #ec4899, #f43f8e)', boxShadow: '0 0 20px rgba(236,72,153,0.4)' }}>
                 <Phone size={22} className="text-white" />
               </div>
-              <h2 className="text-3xl font-black text-white mb-1.5 font-display">Your number</h2>
-              <p className="text-white/35 text-sm">We'll send a 6-digit verification code via SMS</p>
+              <h2 className="text-3xl font-black text-white mb-1.5 font-display">{t.landing.phone.title}</h2>
+              <p className="text-white/35 text-sm">{t.landing.phone.subtitle}</p>
             </div>
 
             <form onSubmit={handlePhoneSubmit} className="flex-1 space-y-5">
               {/* Country picker */}
               <div className="relative">
-                <label className="block text-white/45 text-[11px] font-bold uppercase tracking-widest mb-1.5">Country</label>
+                <label className="block text-white/45 text-[11px] font-bold uppercase tracking-widest mb-1.5">{t.landing.phone.country}</label>
                 <button type="button" onClick={() => setShowCountryPicker(!showCountryPicker)}
                   className="w-full py-3.5 rounded-xl px-4 text-white text-sm flex items-center justify-between transition-all"
                   style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
@@ -649,7 +654,7 @@ export default function LandingPage() {
               </div>
 
               <div>
-                <label className="block text-white/45 text-[11px] font-bold uppercase tracking-widest mb-1.5">Phone Number</label>
+                <label className="block text-white/45 text-[11px] font-bold uppercase tracking-widest mb-1.5">{t.landing.phone.phoneNumber}</label>
                 <div className="flex gap-2">
                   <div className="flex-shrink-0 px-3.5 py-3.5 rounded-xl text-purple-400 font-semibold text-sm"
                     style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
@@ -662,13 +667,13 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <p className="text-white/25 text-xs">Standard SMS rates may apply. Your number is never shared.</p>
+              <p className="text-white/25 text-xs">{t.landing.phone.smsDisclaimer}</p>
 
               <motion.button type="submit" disabled={phoneLoading || phoneNumber.length < 6} whileTap={{ scale: 0.97 }}
                 className="w-full gradient-brand text-white font-bold py-4 rounded-2xl text-base glow-button disabled:opacity-50 flex items-center justify-center gap-2.5 shadow-lg">
                 {phoneLoading
-                  ? <><Spinner /> Sending code…</>
-                  : <>Send Verification Code <ArrowRight size={17} /></>}
+                  ? <><Spinner /> {t.landing.phone.sending}</>
+                  : <>{t.landing.phone.sendCode} <ArrowRight size={17} /></>}
               </motion.button>
             </form>
           </motion.div>
@@ -679,7 +684,7 @@ export default function LandingPage() {
           <motion.div key="otp" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
             className="min-h-screen flex flex-col px-6 pt-12 pb-10">
             <button onClick={() => setMode('phone')} className="flex items-center gap-1.5 text-white/40 hover:text-white text-sm mb-8 w-fit transition-colors">
-              <ArrowLeft size={15} /> Back
+              <ArrowLeft size={15} /> Zurück
             </button>
 
             <div className="mb-10 text-center">
@@ -689,9 +694,9 @@ export default function LandingPage() {
                 animate={{ scale: [1, 1.04, 1] }} transition={{ repeat: Infinity, duration: 2.5 }}>
                 <Phone size={30} className="text-white" />
               </motion.div>
-              <h2 className="text-3xl font-black text-white mb-2 font-display">Enter code</h2>
+              <h2 className="text-3xl font-black text-white mb-2 font-display">{t.landing.otp.title}</h2>
               <p className="text-white/35 text-sm">
-                Sent to <span className="text-white/65 font-semibold">{maskedPhone}</span>
+                {t.landing.otp.sentTo} <span className="text-white/65 font-semibold">{maskedPhone}</span>
               </p>
             </div>
 
@@ -721,7 +726,7 @@ export default function LandingPage() {
               {otpDigits.every(d => d !== '') && (
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                   className="flex items-center justify-center gap-2 text-purple-400 text-sm font-semibold mb-4">
-                  <Spinner size={16} /> Verifying…
+                  <Spinner size={16} /> {t.landing.otp.verifying}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -730,17 +735,17 @@ export default function LandingPage() {
               {canResend ? (
                 <button onClick={() => { setOtpDigits(['', '', '', '', '', '']); setMode('phone'); }}
                   className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors">
-                  Resend code
+                  {t.landing.otp.resend}
                 </button>
               ) : (
                 <p className="text-white/30 text-sm">
-                  Resend in <span className="text-white/55 font-bold tabular-nums">{otpCountdown}s</span>
+                  {t.landing.otp.resendIn} <span className="text-white/55 font-bold tabular-nums">{otpCountdown}s</span>
                 </p>
               )}
             </div>
 
             <p className="text-white/18 text-xs text-center">
-              By verifying, you confirm you are 18 years or older.
+              {t.landing.otp.ageConfirm}
             </p>
           </motion.div>
         )}
