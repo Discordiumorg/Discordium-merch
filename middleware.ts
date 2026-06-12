@@ -63,7 +63,7 @@ const SUSPICIOUS_PATTERNS = [
   /%3c\s*script/i,                                             // encoded XSS
   /%27|%22%3e/i,                                               // encoded quotes
   /\bsystem\s*\(/i,                                            // shell injection
-  /\|\||\&\&/,                                                 // command chaining
+  // Note: ||/&& patterns removed — too broad, fire on legitimate query strings
 ];
 
 // Known malicious user-agent fragments

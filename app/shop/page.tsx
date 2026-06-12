@@ -59,6 +59,16 @@ type ModalPayload =
   | { type: 'bundle'; data: Bundle }
   | { type: 'gift'; data: GiftItem };
 
+/** Maps shop item IDs to Stripe price-ID env var names. */
+const ITEM_STRIPE_PRICE: Record<string, string> = {
+  'boost-1':  'NEXT_PUBLIC_STRIPE_PRICE_BOOST',
+  'superlike-5': 'NEXT_PUBLIC_STRIPE_PRICE_SUPERLIKE',
+  'coins-100':   'NEXT_PUBLIC_STRIPE_PRICE_COINS_100',
+  'coins-500':   'NEXT_PUBLIC_STRIPE_PRICE_COINS_500',
+  'coins-1200':  'NEXT_PUBLIC_STRIPE_PRICE_COINS_1200',
+  'coins-3000':  'NEXT_PUBLIC_STRIPE_PRICE_COINS_3000',
+};
+
 export default function ShopPage() {
   const router = useRouter();
   const [category, setCategory] = useState<Category>('all');
@@ -70,6 +80,7 @@ export default function ShopPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [giftAnimation, setGiftAnimation] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState<string | null>(null);
 
   // Load real inventory from API on mount
   useEffect(() => {
@@ -114,7 +125,7 @@ export default function ShopPage() {
       if (modal.type === 'gift') {
         const gift = modal.data as GiftItem;
         if (inventory.coins < gift.coinCost) {
-          triggerError('Not enough coins!');
+          triggerError('Nicht genug Coins!');
           setModal(null);
           return;
         }
@@ -124,28 +135,100 @@ export default function ShopPage() {
           body: JSON.stringify({ action: 'gift', coinCost: gift.coinCost, itemId: gift.id, itemName: gift.name }),
         });
         const data = await res.json();
-        if (!res.ok) { triggerError(data.error ?? 'Failed'); setModal(null); return; }
+        if (!res.ok) { triggerError(data.error ?? 'Fehlgeschlagen'); setModal(null); return; }
         if (data.inventory) setInventory(data.inventory);
         setSentGifts((p) => { const n = new Set(p); n.add(id); return n; });
         setGiftAnimation(gift.emoji);
         setTimeout(() => setGiftAnimation(null), 2500);
+        triggerSuccess(id);
       } else {
+        // Try Stripe checkout first
+        const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
+        const stripeConfigured = publishableKey && publishableKey !== 'pk_test_replace_with_real_key';
+
+        if (stripeConfigured) {
+          // Determine type + priceId from /api/stripe/prices
+          setModal(null);
+          const itemCategory = (modal.data as ShopItem).category;
+          const priceType: 'boost' | 'superlike' | 'coins' | 'premium' =
+            itemCategory === 'boost' ? 'boost'
+            : itemCategory === 'superlike' ? 'superlike'
+            : itemCategory === 'coins' ? 'coins'
+            : 'coins';
+
+          // Fetch the price ID from our prices endpoint
+          const pricesRes = await fetch('/api/stripe/prices');
+          const prices = await pricesRes.json() as {
+            boosts: { boost1: { priceId: string } };
+            superlikes: { superlike5: { priceId: string } };
+            coins: { coins100: { priceId: string }; coins500: { priceId: string }; coins1200: { priceId: string }; coins3000: { priceId: string } };
+          };
+
+          let priceId = '';
+          if (priceType === 'boost') priceId = prices.boosts.boost1.priceId;
+          else if (priceType === 'superlike') priceId = prices.superlikes.superlike5.priceId;
+          else if (priceType === 'coins') {
+            const coinItem = modal.data as ShopItem;
+            if (coinItem.amount <= 100) priceId = prices.coins.coins100.priceId;
+            else if (coinItem.amount <= 500) priceId = prices.coins.coins500.priceId;
+            else if (coinItem.amount <= 1200) priceId = prices.coins.coins1200.priceId;
+            else priceId = prices.coins.coins3000.priceId;
+          }
+
+          if (priceId && priceId !== 'price_replace') {
+            await handleBuy(id, priceId, priceType);
+            return;
+          }
+        }
+
+        // Fallback: demo purchase
         const res = await fetch('/api/shop/purchase', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ itemId: id, paymentMethod: 'demo' }),
         });
         const data = await res.json();
-        if (!res.ok) { triggerError(data.error ?? 'Purchase failed'); setModal(null); return; }
+        if (!res.ok) { triggerError(data.error ?? 'Kauf fehlgeschlagen'); setModal(null); return; }
         if (data.inventory) setInventory(data.inventory);
         setPurchased((p) => { const n = new Set(p); n.add(id); return n; });
+        triggerSuccess(id);
       }
-      triggerSuccess(id);
     } catch {
-      triggerError('Network error — please try again');
+      triggerError('Netzwerkfehler – bitte versuche es erneut');
     } finally {
       setPurchasing(false);
       setModal(null);
+    }
+  };
+
+  const handleBuy = async (itemId: string, priceId: string, type: 'coins' | 'boost' | 'superlike' | 'premium' = 'coins') => {
+    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
+    if (!publishableKey || publishableKey === 'pk_test_replace_with_real_key') {
+      triggerError('Stripe nicht konfiguriert');
+      return;
+    }
+    if (!priceId || priceId === 'price_replace') {
+      triggerError('Stripe nicht konfiguriert');
+      return;
+    }
+
+    setStripeLoading(itemId);
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, userId: 'guest', type }),
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        triggerError(data.error ?? 'Checkout fehlgeschlagen');
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      triggerError('Netzwerkfehler – bitte versuche es erneut');
+    } finally {
+      setStripeLoading(null);
     }
   };
 
@@ -1008,15 +1091,15 @@ export default function ShopPage() {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={confirmPurchase}
-                  disabled={purchasing}
+                  disabled={purchasing || stripeLoading !== null}
                   className={`flex-1 py-3 rounded-2xl bg-gradient-to-r ${modal.data.color} text-white font-black text-sm shadow-lg disabled:opacity-60`}
                 >
-                  {purchasing ? '⏳ Processing…' : modal.type === 'gift' ? 'Send Gift 🎁' : 'Confirm Purchase'}
+                  {(purchasing || stripeLoading !== null) ? '⏳ Bitte warten…' : modal.type === 'gift' ? 'Geschenk senden 🎁' : 'Jetzt kaufen'}
                 </motion.button>
               </div>
 
               <p className="text-white/20 text-[10px] text-center mt-3">
-                Secure payment · Cancel anytime · Demo mode
+                Sichere Zahlung · Jederzeit kündbar
               </p>
             </motion.div>
           </motion.div>

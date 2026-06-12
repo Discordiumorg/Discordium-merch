@@ -235,6 +235,57 @@ export default function PremiumPage() {
   const [billing, setBilling] = useState<BillingCycle>('yearly');
   const [showStickyCta, setShowStickyCta] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const [stripeLoading, setStripeLoading] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handlePlanBuy = async (planId: 'basic' | 'gold' | 'platinum') => {
+    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
+    if (!publishableKey || publishableKey === 'pk_test_replace_with_real_key') {
+      showToast('Stripe nicht konfiguriert');
+      return;
+    }
+
+    setStripeLoading(planId);
+    try {
+      const pricesRes = await fetch('/api/stripe/prices');
+      const prices = await pricesRes.json() as {
+        premium: {
+          basic: { monthly: string; yearly: string };
+          gold: { monthly: string; yearly: string };
+          platinum: { monthly: string; yearly: string };
+        };
+      };
+
+      const cycle = billing === 'yearly' ? 'yearly' : 'monthly';
+      const priceId = prices.premium[planId][cycle];
+
+      if (!priceId || priceId === 'price_replace') {
+        showToast('Stripe nicht konfiguriert');
+        return;
+      }
+
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, userId: 'guest', type: 'premium' }),
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        showToast(data.error ?? 'Checkout fehlgeschlagen');
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      showToast('Netzwerkfehler – bitte versuche es erneut');
+    } finally {
+      setStripeLoading(null);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -429,14 +480,19 @@ export default function PremiumPage() {
                   <motion.button
                     whileTap={{ scale: 0.96 }}
                     whileHover={{ opacity: 0.9 }}
+                    onClick={() => {
+                      if (plan.monthlyPrice !== null) {
+                        void handlePlanBuy(plan.id as 'basic' | 'gold' | 'platinum');
+                      }
+                    }}
                     className={`w-full mt-3 py-2.5 rounded-xl text-sm font-black transition-all ${
                       plan.monthlyPrice === null
                         ? 'bg-white/10 text-white/40 cursor-default'
                         : 'gradient-brand text-white glow-button'
                     }`}
-                    disabled={plan.monthlyPrice === null}
+                    disabled={plan.monthlyPrice === null || stripeLoading === plan.id}
                   >
-                    {plan.monthlyPrice === null ? 'Aktuell' : 'Wählen'}
+                    {stripeLoading === plan.id ? '⏳ Bitte warten…' : plan.monthlyPrice === null ? 'Aktuell' : 'Wählen'}
                   </motion.button>
                 </div>
               </motion.div>
@@ -546,10 +602,27 @@ export default function PremiumPage() {
           >
             <motion.button
               whileTap={{ scale: 0.96 }}
-              className="gradient-brand text-white font-bold py-3 px-8 rounded-2xl glow-button text-sm pointer-events-auto shadow-2xl"
+              onClick={() => void handlePlanBuy('gold')}
+              disabled={stripeLoading === 'gold'}
+              className="gradient-brand text-white font-bold py-3 px-8 rounded-2xl glow-button text-sm pointer-events-auto shadow-2xl disabled:opacity-60"
             >
-              Gold testen – 7 Tage kostenlos
+              {stripeLoading === 'gold' ? '⏳ Bitte warten…' : 'Gold testen – 7 Tage kostenlos'}
             </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Toast ─────────────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div
+            key={toastMsg}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl whitespace-nowrap"
+          >
+            {toastMsg}
           </motion.div>
         )}
       </AnimatePresence>
