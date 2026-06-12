@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, HelpCircle, ChevronDown, MessageCircle, Mail, Shield, CreditCard, Heart, Settings, Zap, type LucideIcon } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import { useI18n } from '@/lib/i18n';
 
 interface FAQItem {
   q: string;
@@ -31,20 +32,26 @@ const FAQ: FAQItem[] = [
   { category: 'technical', q: 'Benachrichtigungen kommen nicht an?', a: 'Stelle sicher, dass Benachrichtigungen für die App in deinen Systemeinstellungen aktiviert sind. In der App kannst du unter Einstellungen → Benachrichtigungen granular einstellen welche Benachrichtigungen du erhalten möchtest.' },
 ];
 
-const CATEGORIES: Array<{ key: Category; label: string; icon: LucideIcon }> = [
-  { key: 'all', label: 'Alle', icon: HelpCircle },
-  { key: 'matching', label: 'Matching', icon: Heart },
-  { key: 'account', label: 'Konto', icon: Settings },
-  { key: 'payments', label: 'Zahlung', icon: CreditCard },
-  { key: 'safety', label: 'Sicherheit', icon: Shield },
-  { key: 'technical', label: 'Technik', icon: Zap },
+const CATEGORY_ICONS: Array<{ key: Category; icon: LucideIcon }> = [
+  { key: 'all', icon: HelpCircle },
+  { key: 'matching', icon: Heart },
+  { key: 'account', icon: Settings },
+  { key: 'payments', icon: CreditCard },
+  { key: 'safety', icon: Shield },
+  { key: 'technical', icon: Zap },
 ];
 
 export default function HelpPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [category, setCategory] = useState<Category>('all');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const categories = CATEGORY_ICONS.map(({ key, icon }) => ({
+    key,
+    icon,
+    label: t.help.categories[key],
+  }));
 
   const filtered = FAQ.filter(f => {
     if (category !== 'all' && f.category !== category) return false;
@@ -60,16 +67,16 @@ export default function HelpPage() {
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-3">
         <div className="flex items-center gap-3 mb-3">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/60"><ArrowLeft size={18} /></button>
-          <h1 className="text-white font-black text-xl">❓ Hilfe & FAQ</h1>
+          <h1 className="text-white font-black text-xl">❓ {t.help.title}</h1>
         </div>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Frage suchen…"
+          placeholder={t.help.searchPlaceholder}
           className="w-full bg-brand-surface border border-white/10 rounded-xl px-4 py-2.5 text-white/70 placeholder:text-white/25 text-sm focus:outline-none focus:border-purple-500/40 mb-3"
         />
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-          {CATEGORIES.map(({ key, label, icon: Icon }) => (
+          {categories.map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => setCategory(key)} className={`flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all ${category === key ? 'gradient-brand text-white' : 'bg-white/8 text-white/50 border border-white/10'}`}>
               <Icon size={11} />
               {label}
@@ -82,13 +89,13 @@ export default function HelpPage() {
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card-glass rounded-2xl p-5 text-center border border-purple-500/15">
           <p className="text-3xl mb-2">💬</p>
-          <p className="text-white font-black text-lg">Wie können wir helfen?</p>
-          <p className="text-white/50 text-sm mt-1">Finde Antworten auf häufige Fragen</p>
+          <p className="text-white font-black text-lg">{t.help.heroTitle}</p>
+          <p className="text-white/50 text-sm mt-1">{t.help.heroSubtitle}</p>
         </motion.div>
 
         {/* FAQ accordion */}
         <div className="space-y-2">
-          <p className="text-white/40 text-xs uppercase tracking-wider">{filtered.length} Ergebnis{filtered.length !== 1 ? 'se' : ''}</p>
+          <p className="text-white/40 text-xs uppercase tracking-wider">{t.help.resultsCount(filtered.length)}</p>
           <AnimatePresence>
             {filtered.map((item, i) => (
               <motion.div
@@ -131,37 +138,36 @@ export default function HelpPage() {
           {filtered.length === 0 && (
             <div className="text-center py-12">
               <p className="text-4xl mb-3">🔍</p>
-              <p className="text-white/50 text-sm">Keine Ergebnisse für "{search}"</p>
-              <p className="text-white/30 text-xs mt-1">Probiere andere Suchbegriffe</p>
+              <p className="text-white/50 text-sm">{t.help.noResults(search)}</p>
+              <p className="text-white/30 text-xs mt-1">{t.help.tryOther}</p>
             </div>
           )}
         </div>
 
         {/* Contact support */}
         <div className="space-y-3">
-          <p className="text-white/40 text-xs uppercase tracking-wider">Direkte Hilfe</p>
+          <p className="text-white/40 text-xs uppercase tracking-wider">{t.help.directHelp}</p>
           <motion.button whileTap={{ scale: 0.97 }} className="w-full card-glass rounded-2xl p-4 flex items-center gap-4 border border-white/8 hover:border-purple-500/25 transition-colors">
             <div className="w-11 h-11 bg-purple-500/15 rounded-xl flex items-center justify-center flex-shrink-0"><MessageCircle size={20} className="text-purple-400" /></div>
             <div className="flex-1 text-left">
-              <p className="text-white font-bold text-sm">Live-Chat Support</p>
-              <p className="text-white/40 text-xs">Antwort in &lt; 5 Minuten · Mo–Fr 9–21 Uhr</p>
+              <p className="text-white font-bold text-sm">{t.help.liveChat}</p>
+              <p className="text-white/40 text-xs">{t.help.liveChatDesc}</p>
             </div>
-            <span className="text-green-400 text-xs font-semibold">Online</span>
+            <span className="text-green-400 text-xs font-semibold">{t.help.liveChatStatus}</span>
           </motion.button>
 
           <motion.button whileTap={{ scale: 0.97 }} className="w-full card-glass rounded-2xl p-4 flex items-center gap-4 border border-white/8 hover:border-purple-500/25 transition-colors">
             <div className="w-11 h-11 bg-blue-500/15 rounded-xl flex items-center justify-center flex-shrink-0"><Mail size={20} className="text-blue-400" /></div>
             <div className="flex-1 text-left">
-              <p className="text-white font-bold text-sm">E-Mail Support</p>
-              <p className="text-white/40 text-xs">support@aura.app · Antwort innerhalb 24h</p>
+              <p className="text-white font-bold text-sm">{t.help.emailSupport}</p>
+              <p className="text-white/40 text-xs">{t.help.emailSupportDesc}</p>
             </div>
           </motion.button>
         </div>
 
         <div className="card-glass rounded-2xl p-4 border border-white/8">
           <p className="text-white/50 text-xs text-center leading-relaxed">
-            Du kannst uns auch auf Instagram finden: <span className="text-purple-400">@aura.dating</span>
-            {' '}· Version 2.4.1 · Made with ❤️ in Berlin
+            {t.help.footer('aura.dating')}
           </p>
         </div>
       </div>

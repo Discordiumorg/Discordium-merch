@@ -504,52 +504,52 @@ export default function LandingPage() {
                 <Mail size={22} className="text-white" />
               </div>
               <h2 className="text-3xl font-black text-white mb-1.5 font-display">
-                {intent === 'login' ? 'Anmelden' : 'Konto erstellen'}
+                {intent === 'login' ? t.landing.email.title : t.landing.email.titleRegister}
               </h2>
               <p className="text-white/35 text-sm">
-                {intent === 'login' ? 'Gib deine Anmeldedaten ein' : 'Füll deine Daten aus, um loszulegen'}
+                {intent === 'login' ? t.landing.email.subtitle : t.landing.email.subtitleRegister}
               </p>
             </div>
 
             <form onSubmit={handleEmailSubmit} className="flex-1 space-y-4">
               {intent === 'register' && (
                 <>
-                  <Field label="Anzeigename" error={errors.name}>
+                  <Field label={t.landing.email.displayName} error={errors.name}>
                     <input type="text" value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Wie sollen wir dich nennen?"
+                      placeholder={t.landing.email.namePlaceholder}
                       className={INPUT_CLS} />
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Alter" error={errors.age}>
+                    <Field label={t.landing.email.age} error={errors.age}>
                       <input type="number" value={formData.age}
                         onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                         placeholder="18+" min="18" max="99"
                         className={INPUT_CLS} />
                     </Field>
-                    <Field label="Ich bin">
+                    <Field label={t.landing.email.iAm}>
                       <select value={formData.gender}
                         onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                         className={INPUT_CLS}>
-                        <option value="female" className="bg-[#1a1730]">Frau</option>
-                        <option value="male" className="bg-[#1a1730]">Mann</option>
-                        <option value="non-binary" className="bg-[#1a1730]">Non-binär</option>
-                        <option value="other" className="bg-[#1a1730]">Anderes</option>
+                        <option value="female" className="bg-[#1a1730]">{t.landing.email.woman}</option>
+                        <option value="male" className="bg-[#1a1730]">{t.landing.email.man}</option>
+                        <option value="non-binary" className="bg-[#1a1730]">{t.landing.email.nonBinary}</option>
+                        <option value="other" className="bg-[#1a1730]">{t.landing.email.other}</option>
                       </select>
                     </Field>
                   </div>
                 </>
               )}
 
-              <Field label="E-Mail" error={errors.email}>
+              <Field label={t.landing.email.emailLabel} error={errors.email}>
                 <input type="email" value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="deine@email.de"
+                  placeholder={t.landing.email.emailPlaceholder}
                   autoComplete="email"
                   className={INPUT_CLS} />
               </Field>
 
-              <Field label="Passwort" error={errors.password}>
+              <Field label={t.landing.email.password} error={errors.password}>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -569,7 +569,7 @@ export default function LandingPage() {
               {intent === 'login' && (
                 <div className="text-right -mt-1">
                   <button type="button" className="text-purple-400/65 text-xs hover:text-purple-300 transition-colors">
-                    Passwort vergessen?
+                    {t.landing.email.forgotPassword}
                   </button>
                 </div>
               )}
@@ -578,17 +578,17 @@ export default function LandingPage() {
                 <motion.button type="submit" disabled={emailLoading} whileTap={{ scale: 0.97 }}
                   className="w-full gradient-brand text-white font-bold py-4 rounded-2xl text-base glow-button disabled:opacity-60 flex items-center justify-center gap-2.5 shadow-lg">
                   {emailLoading
-                    ? <><Spinner /> {intent === 'login' ? 'Anmelden…' : 'Konto wird erstellt…'}</>
-                    : <>{intent === 'login' ? 'Anmelden' : 'Konto erstellen'} <ArrowRight size={17} /></>}
+                    ? <><Spinner /> {intent === 'login' ? t.landing.email.signingIn : t.landing.email.creating}</>
+                    : <>{intent === 'login' ? t.landing.email.submit : t.landing.email.submitRegister} <ArrowRight size={17} /></>}
                 </motion.button>
               </div>
 
               <div className="text-center pt-1">
-                <span className="text-white/30 text-sm">{intent === 'login' ? 'Kein Konto? ' : 'Bereits registriert? '}</span>
+                <span className="text-white/30 text-sm">{intent === 'login' ? t.landing.email.noAccountYet : t.landing.email.alreadyRegistered}</span>
                 <button type="button"
                   onClick={() => { setIntent(intent === 'login' ? 'register' : 'login'); setErrors({}); }}
                   className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors">
-                  {intent === 'login' ? 'Kostenlos registrieren' : 'Anmelden'}
+                  {intent === 'login' ? t.landing.email.signUpFree : t.landing.email.submit}
                 </button>
               </div>
 
@@ -597,7 +597,7 @@ export default function LandingPage() {
                 <button type="button" onClick={handleDemoLogin}
                   disabled={loadingProvider === 'demo'}
                   className="text-white/22 text-xs hover:text-white/40 transition-colors">
-                  Demo testen: demo@aura.app / demo123
+                  {t.landing.email.demoHint}
                 </button>
               </div>
             </form>
@@ -617,14 +617,14 @@ export default function LandingPage() {
                 style={{ background: 'linear-gradient(135deg, #ec4899, #f43f8e)', boxShadow: '0 0 20px rgba(236,72,153,0.4)' }}>
                 <Phone size={22} className="text-white" />
               </div>
-              <h2 className="text-3xl font-black text-white mb-1.5 font-display">Deine Nummer</h2>
-              <p className="text-white/35 text-sm">Wir senden dir einen 6-stelligen Code per SMS</p>
+              <h2 className="text-3xl font-black text-white mb-1.5 font-display">{t.landing.phone.title}</h2>
+              <p className="text-white/35 text-sm">{t.landing.phone.subtitle}</p>
             </div>
 
             <form onSubmit={handlePhoneSubmit} className="flex-1 space-y-5">
               {/* Country picker */}
               <div className="relative">
-                <label className="block text-white/45 text-[11px] font-bold uppercase tracking-widest mb-1.5">Land</label>
+                <label className="block text-white/45 text-[11px] font-bold uppercase tracking-widest mb-1.5">{t.landing.phone.country}</label>
                 <button type="button" onClick={() => setShowCountryPicker(!showCountryPicker)}
                   className="w-full py-3.5 rounded-xl px-4 text-white text-sm flex items-center justify-between transition-all"
                   style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
@@ -654,7 +654,7 @@ export default function LandingPage() {
               </div>
 
               <div>
-                <label className="block text-white/45 text-[11px] font-bold uppercase tracking-widest mb-1.5">Telefonnummer</label>
+                <label className="block text-white/45 text-[11px] font-bold uppercase tracking-widest mb-1.5">{t.landing.phone.phoneNumber}</label>
                 <div className="flex gap-2">
                   <div className="flex-shrink-0 px-3.5 py-3.5 rounded-xl text-purple-400 font-semibold text-sm"
                     style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
@@ -667,13 +667,13 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <p className="text-white/25 text-xs">Standard-SMS-Tarife können anfallen. Deine Nummer wird nicht weitergegeben.</p>
+              <p className="text-white/25 text-xs">{t.landing.phone.smsDisclaimer}</p>
 
               <motion.button type="submit" disabled={phoneLoading || phoneNumber.length < 6} whileTap={{ scale: 0.97 }}
                 className="w-full gradient-brand text-white font-bold py-4 rounded-2xl text-base glow-button disabled:opacity-50 flex items-center justify-center gap-2.5 shadow-lg">
                 {phoneLoading
-                  ? <><Spinner /> Code wird gesendet…</>
-                  : <>Bestätigungscode senden <ArrowRight size={17} /></>}
+                  ? <><Spinner /> {t.landing.phone.sending}</>
+                  : <>{t.landing.phone.sendCode} <ArrowRight size={17} /></>}
               </motion.button>
             </form>
           </motion.div>
@@ -694,9 +694,9 @@ export default function LandingPage() {
                 animate={{ scale: [1, 1.04, 1] }} transition={{ repeat: Infinity, duration: 2.5 }}>
                 <Phone size={30} className="text-white" />
               </motion.div>
-              <h2 className="text-3xl font-black text-white mb-2 font-display">Code eingeben</h2>
+              <h2 className="text-3xl font-black text-white mb-2 font-display">{t.landing.otp.title}</h2>
               <p className="text-white/35 text-sm">
-                Gesendet an <span className="text-white/65 font-semibold">{maskedPhone}</span>
+                {t.landing.otp.sentTo} <span className="text-white/65 font-semibold">{maskedPhone}</span>
               </p>
             </div>
 
@@ -726,7 +726,7 @@ export default function LandingPage() {
               {otpDigits.every(d => d !== '') && (
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                   className="flex items-center justify-center gap-2 text-purple-400 text-sm font-semibold mb-4">
-                  <Spinner size={16} /> Wird überprüft…
+                  <Spinner size={16} /> {t.landing.otp.verifying}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -735,17 +735,17 @@ export default function LandingPage() {
               {canResend ? (
                 <button onClick={() => { setOtpDigits(['', '', '', '', '', '']); setMode('phone'); }}
                   className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors">
-                  Code erneut senden
+                  {t.landing.otp.resend}
                 </button>
               ) : (
                 <p className="text-white/30 text-sm">
-                  Erneut senden in <span className="text-white/55 font-bold tabular-nums">{otpCountdown}s</span>
+                  {t.landing.otp.resendIn} <span className="text-white/55 font-bold tabular-nums">{otpCountdown}s</span>
                 </p>
               )}
             </div>
 
             <p className="text-white/18 text-xs text-center">
-              Mit der Bestätigung erklärst du, dass du mindestens 18 Jahre alt bist.
+              {t.landing.otp.ageConfirm}
             </p>
           </motion.div>
         )}

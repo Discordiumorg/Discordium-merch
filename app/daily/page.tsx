@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Check, Star, Zap, Crown, Gift } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import { useI18n } from '@/lib/i18n';
 
 interface DayReward {
   day: number;
@@ -34,6 +35,7 @@ const TASKS = [
 
 export default function DailyPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [currentStreak] = useState(5);
   const [todaysClaimed, setTodaysClaimed] = useState(false);
   const [claimedTasks, setClaimedTasks] = useState<Set<string>>(new Set(['complete_bio', 'add_photo']));
@@ -65,7 +67,7 @@ export default function DailyPage() {
       <div className="sticky top-0 z-30 bg-brand-dark/90 backdrop-blur-xl border-b border-white/10 px-5 pt-12 pb-4">
         <div className="flex items-center gap-3">
           <button onClick={() => router.back()} className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/60"><ArrowLeft size={18} /></button>
-          <h1 className="text-white font-black text-xl">🎁 Tägliche Belohnungen</h1>
+          <h1 className="text-white font-black text-xl">🎁 {t.daily.title}</h1>
           <div className="ml-auto flex items-center gap-1.5 bg-yellow-500/15 border border-yellow-500/25 rounded-full px-3 py-1.5">
             <span className="text-sm">🪙</span>
             <span className="text-yellow-300 font-bold text-sm">{coins}</span>
@@ -77,8 +79,8 @@ export default function DailyPage() {
         {/* Streak hero */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card-glass rounded-2xl p-5 text-center border border-orange-500/20">
           <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }} className="text-5xl mb-2">🔥</motion.div>
-          <p className="text-white font-black text-3xl">{currentStreak}-Tage-Serie</p>
-          <p className="text-white/50 text-sm mt-1">Du bist auf Kurs — komm morgen wieder!</p>
+          <p className="text-white font-black text-3xl">{t.daily.streak(currentStreak)}</p>
+          <p className="text-white/50 text-sm mt-1">{t.daily.streakDesc}</p>
           <div className="flex items-center justify-center gap-1.5 mt-3">
             {Array.from({ length: 7 }, (_, i) => (
               <motion.div
@@ -96,7 +98,7 @@ export default function DailyPage() {
 
         {/* Weekly rewards calendar */}
         <div>
-          <h2 className="text-white font-bold text-base mb-3">📅 Diese Woche</h2>
+          <h2 className="text-white font-bold text-base mb-3">{t.daily.thisWeek}</h2>
           <div className="grid grid-cols-7 gap-1.5">
             {WEEKLY_REWARDS.map((wr, i) => {
               const isPast = i < currentStreak - 1;
@@ -129,7 +131,7 @@ export default function DailyPage() {
           <div className="flex items-center gap-4 mb-4">
             <span className="text-4xl">{WEEKLY_REWARDS[todayDayIndex].emoji}</span>
             <div>
-              <p className="text-white font-black text-lg">Heutige Belohnung</p>
+              <p className="text-white font-black text-lg">{t.daily.todayReward}</p>
               <p className="text-purple-300 font-semibold">{WEEKLY_REWARDS[todayDayIndex].label}</p>
             </div>
           </div>
@@ -139,13 +141,13 @@ export default function DailyPage() {
             disabled={todaysClaimed}
             className={`w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all ${todaysClaimed ? 'bg-green-500' : 'gradient-brand glow-button'}`}
           >
-            {todaysClaimed ? <><Check size={18} /> Heute bereits abgeholt!</> : <><Gift size={18} /> Jetzt abholen</>}
+            {todaysClaimed ? <><Check size={18} /> {t.daily.claimed}</> : <><Gift size={18} /> {t.daily.claim}</>}
           </motion.button>
         </div>
 
         {/* Daily tasks */}
         <div>
-          <h2 className="text-white font-bold text-base mb-3">✅ Tägliche Aufgaben</h2>
+          <h2 className="text-white font-bold text-base mb-3">{t.daily.dailyTasks}</h2>
           <div className="space-y-3">
             {TASKS.map((task, i) => {
               const isClaimed = claimedTasks.has(task.id);
@@ -196,9 +198,9 @@ export default function DailyPage() {
                       'bg-white/5 text-white/25 border border-white/8'
                     }`}
                   >
-                    {isClaimed ? <><Check size={14} /> Abgeholt!</> :
-                     isCompletable ? <><Star size={14} /> Belohnung abholen</> :
-                     <>Aufgabe erledigen ({task.progress}/{task.total})</>}
+                    {isClaimed ? <><Check size={14} /> {t.daily.collected}</> :
+                     isCompletable ? <><Star size={14} /> {t.daily.collectReward}</> :
+                     <>{t.daily.doTask(task.progress, task.total)}</>}
                   </motion.button>
                 </motion.div>
               );
@@ -210,10 +212,10 @@ export default function DailyPage() {
         <div className="card-glass rounded-2xl p-4 border border-yellow-500/15 flex items-center gap-3">
           <Crown size={20} className="text-yellow-400 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-white font-bold text-sm">Premium verdoppelt alle Belohnungen</p>
-            <p className="text-white/40 text-xs">Gold-Mitglieder erhalten 2× Münzen und Bonus-Aufgaben</p>
+            <p className="text-white font-bold text-sm">{t.daily.premiumBoost}</p>
+            <p className="text-white/40 text-xs">{t.daily.premiumDesc}</p>
           </div>
-          <button onClick={() => router.push('/premium')} className="gradient-brand text-white text-xs font-bold px-3 py-2 rounded-xl">Gold</button>
+          <button onClick={() => router.push('/premium')} className="gradient-brand text-white text-xs font-bold px-3 py-2 rounded-xl">{t.daily.goGold}</button>
         </div>
       </div>
 
@@ -227,7 +229,7 @@ export default function DailyPage() {
             className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-yellow-500 text-white px-6 py-3 rounded-2xl font-black text-lg shadow-2xl flex items-center gap-2"
             style={{ boxShadow: '0 0 40px rgba(234,179,8,0.5)' }}
           >
-            {showRewardAnim.emoji} +{showRewardAnim.amount} erhalten!
+            {t.daily.received(showRewardAnim.emoji, showRewardAnim.amount)}
           </motion.div>
         )}
       </AnimatePresence>
