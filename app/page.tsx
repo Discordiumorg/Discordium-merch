@@ -432,10 +432,10 @@ export default function LandingPage() {
             <div className="mb-8">
               <AuraLogomark size={36} />
               <h2 className="text-3xl font-black text-white mt-4 mb-1.5 font-display">
-                {intent === 'register' ? 'Jetzt mitmachen' : 'Willkommen zurück'}
+                {intent === 'register' ? t.landing.joinAura : t.landing.welcomeBack}
               </h2>
               <p className="text-white/35 text-sm">
-                {intent === 'register' ? 'Erstelle dein kostenloses Konto' : 'Melde dich an, um fortzufahren'}
+                {intent === 'register' ? t.landing.createFreeAccount : t.landing.signInToContinue}
               </p>
             </div>
 
@@ -458,7 +458,7 @@ export default function LandingPage() {
             {/* Divider */}
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 h-px bg-white/8" />
-              <span className="text-white/25 text-xs font-medium">oder weiter mit</span>
+              <span className="text-white/25 text-xs font-medium">{t.landing.orContinueWith}</span>
               <div className="flex-1 h-px bg-white/8" />
             </div>
 
@@ -468,25 +468,25 @@ export default function LandingPage() {
                 className="w-full py-3.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-3 transition-all hover:border-purple-500/40"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
                 <Mail size={17} className="text-purple-400" />
-                Weiter mit E-Mail
+                {t.landing.continueEmail}
               </motion.button>
               <motion.button whileTap={{ scale: 0.98 }} onClick={() => setMode('phone')}
                 className="w-full py-3.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-3 transition-all hover:border-pink-500/40"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
                 <Phone size={17} className="text-pink-400" />
-                Weiter mit Telefonnummer
+                {t.landing.continuePhone}
               </motion.button>
             </div>
 
             <div className="text-center">
-              <span className="text-white/30 text-sm">{intent === 'login' ? 'Neu hier? ' : 'Bereits registriert? '}</span>
+              <span className="text-white/30 text-sm">{intent === 'login' ? t.landing.noAccount : t.landing.alreadyHaveAccount}</span>
               <button onClick={() => setIntent(intent === 'login' ? 'register' : 'login')}
                 className="text-purple-400 text-sm font-semibold hover:text-purple-300 transition-colors">
-                {intent === 'login' ? 'Konto erstellen' : 'Anmelden'}
+                {intent === 'login' ? t.landing.switchToSignUp : t.landing.switchToSignIn}
               </button>
             </div>
 
-            <p className="text-white/15 text-[10px] text-center mt-8">Nur ab 18 Jahren · AGB & Datenschutz</p>
+            <p className="text-white/15 text-[10px] text-center mt-8">{t.landing.ageDisclaimer}</p>
           </motion.div>
         )}
 
