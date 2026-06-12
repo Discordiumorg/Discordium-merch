@@ -3,15 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Flame, Video, Calendar, MessageCircle, Crown, User } from 'lucide-react';
-
-const navItems = [
-  { href: '/dashboard', icon: Flame, label: 'Discover' },
-  { href: '/live', icon: Video, label: 'Live', live: true },
-  { href: '/events', icon: Calendar, label: 'Events' },
-  { href: '/matches', icon: MessageCircle, label: 'Matches' },
-  { href: '/shop', icon: Crown, label: 'Shop', special: true },
-  { href: '/profile', icon: User, label: 'Profile' },
-];
+import { useI18n } from '@/lib/i18n';
 
 interface BottomNavProps {
   matchCount?: number;
@@ -21,6 +13,16 @@ interface BottomNavProps {
 export default function BottomNav({ matchCount = 0 }: BottomNavProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useI18n();
+
+  const navItems = [
+    { href: '/dashboard', icon: Flame, label: t.nav.discover },
+    { href: '/live', icon: Video, label: 'Live', live: true },
+    { href: '/events', icon: Calendar, label: 'Events' },
+    { href: '/matches', icon: MessageCircle, label: t.nav.matches },
+    { href: '/shop', icon: Crown, label: t.nav.shop, special: true },
+    { href: '/profile', icon: User, label: t.nav.profile },
+  ];
 
   const badges: Record<string, number> = {
     '/matches': matchCount,
